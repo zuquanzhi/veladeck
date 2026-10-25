@@ -20,6 +20,8 @@ This updates the native Android interface and client functionality. Backend and 
 
 Versions through 0.1.1 used a CI-generated development key. Android cannot cover-install the new signing identity over that version. Uninstall the old VelaDeck companion, manually install the latest native Release APK, and enter the workspace URL again. Browser-side device pairing and backend files remain on their existing origin/server; no server data is deleted by uninstalling the companion. Future fixed-key Release APKs can update in place.
 
+Version 0.1.2 already uses the fixed key, so the native APK can install over it. Its updater can falsely reject APK signing metadata on Android 10; download and install 0.2.0 once if that happens. The native release includes the compatibility fix and retains the same key.
+
 Release package: `io.github.zuquanzhi.veladeck.preview`. Development artifacts use `.dev`, disable in-app installation updates and never substitute for published releases.
 
 ## Maintainer configuration
