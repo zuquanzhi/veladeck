@@ -19,3 +19,11 @@ Authenticated loopback ingestion, 20 MB limits, typed artifact previews, FTS que
 Verification pending. Reading progress is stored on the server only. Settings and actual device push validation follow later milestones.
 
 M2 validation: verify passed (5 tests); 10,000 rows: list 37.4 ms, search p95 60.7 ms; production build and extended HTTP smoke passed.
+
+## M3 — Notifications and PWA
+
+VAPID generation, authenticated push subscriptions, six-hour deduplication, quiet hours, project preferences, priority filtering and configurable delivery fallback. Service worker caches static assets only; personal API data is never cached. Lock-screen content is hidden by default.
+
+Verification pending. Real Android background delivery cannot be marked passed without a configured HTTPS deployment and a physical device. Failed/absent notification channels remain explicitly undelivered.
+
+M3 validation: compiler/linter, notification policy and subscription isolation tests, production PWA build and extended HTTP smoke passed. Real-device checks remain pending.
