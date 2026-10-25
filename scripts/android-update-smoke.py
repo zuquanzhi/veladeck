@@ -60,6 +60,19 @@ def tap(node):
     adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
 
 
+def reveal(predicate, width, height):
+    for attempt in range(6):
+        for node in hierarchy():
+            if predicate(node):
+                return node
+        if attempt < 5:
+            adb('shell', 'input', 'swipe', str(width // 2), str(height * 85 // 100),
+                str(width // 2), str(height // 4), '400')
+            time.sleep(0.5)
+    raise AssertionError('Expected updated-app content was not found after scrolling')
+
+
+stage = 'baseline launch and release discovery'
 try:
     adb('install', '.tools/update-baseline.apk')
     adb('shell', 'am', 'start', '-n', ACTIVITY)
@@ -67,6 +80,7 @@ try:
     text('VelaDeck v' + CONFIG['target'])
     screen('01-update-available')
     tap(offer)
+    stage = 'verified download and installation-source permission'
     time.sleep(2)
     # On compact displays the native update controls are below the connection form.
     size = re.search(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))
@@ -86,6 +100,7 @@ try:
     install = text('Install')
     screen('04-system-install-confirmation')
     tap(install)
+    stage = 'system installation and version advance'
     deadline = time.monotonic() + 90
     while time.monotonic() < deadline:
         dump = adb('shell', 'dumpsys', 'package', PACKAGE)
@@ -94,14 +109,18 @@ try:
         time.sleep(2)
     else:
         raise AssertionError('The installed version did not advance')
+    # Package metadata changes before the replacement transaction finishes. Wait
+    # for the installer's enabled Open button; restarting now can be killed by
+    # the still-running replacement even though dumpsys reports the new code.
+    open_app = wait_node(lambda n: n.get('text', '').casefold() == 'open'
+                        and n.get('enabled') == 'true', timeout=90)
     screen('05-upgrade-installed')
-    adb('shell', 'am', 'force-stop', PACKAGE)
-    adb('shell', 'am', 'start', '-n', ACTIVITY)
-    # The version label and updater status live below the connection form.
-    time.sleep(2)
-    adb('shell', 'input', 'swipe', str(width // 2), str(height * 85 // 100), str(width // 2), str(height // 4), '400')
-    wait_node(lambda n: n.get('text', '').startswith('v' + CONFIG['target'] + '-preview'))
-    text('当前已是最新版本。')
+    tap(open_app)
+    stage = 'updated app launch and current-version UI'
+    wait_node(lambda n: n.get('package') == PACKAGE)
+    # The connection form can span several screens on the small AOSP emulator.
+    reveal(lambda n: n.get('text', '').startswith('v' + CONFIG['target'] + '-preview'), width, height)
+    reveal(lambda n: n.get('text', '') == '当前已是最新版本。', width, height)
     screen('06-updated-app')
     result = {'status': 'passed', 'api': 29, 'baseline_is_stamped_test_fixture': True,
               'baseline': CONFIG['baseline'], 'installed_version': CONFIG['target'],
@@ -113,6 +132,7 @@ try:
 except Exception:
     try:
         screen('failure')
+        (OUTPUT / 'failure-stage.txt').write_text(stage)
         (OUTPUT / 'logcat.txt').write_text(adb('logcat', '-d', '-s', 'VelaDeckUpdate:I', 'AndroidRuntime:E', '*:S'))
     finally:
         raise
