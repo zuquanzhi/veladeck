@@ -103,20 +103,23 @@ final class GithubUpdates {
             UpdatePolicy.copyVerified(input, new OutputSink(), release, bytes -> {});
         }
         PackageManager manager = context.getPackageManager();
-        int flags = Build.VERSION.SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
+        int flags = PackageManager.GET_SIGNATURES;
+        if (Build.VERSION.SDK_INT >= 28) flags |= PackageManager.GET_SIGNING_CERTIFICATES;
         PackageInfo archive = manager.getPackageArchiveInfo(file.getAbsolutePath(), flags);
         PackageInfo installed = manager.getPackageInfo(context.getPackageName(), flags);
         if (archive == null) throw new IOException("Invalid APK");
         long code = Build.VERSION.SDK_INT >= 28 ? archive.getLongVersionCode() : archive.versionCode;
         Log.i(LOG_TAG, "APK code=" + code + ", expected=" + release.code + ", installed=" + BuildConfig.VERSION_CODE);
+        Log.i(LOG_TAG, "Public APK signer fingerprints=" + signers(archive) + ", installed=" + signers(installed));
         UpdatePolicy.validatePackage(release, archive.packageName, context.getPackageName(), code,
                 archive.versionName, BuildConfig.VERSION_CODE, signers(archive), signers(installed));
     }
 
     @SuppressWarnings("deprecation")
     private static Set<String> signers(PackageInfo info) {
-        Signature[] signatures = Build.VERSION.SDK_INT >= 28
-                ? (info.signingInfo == null ? null : info.signingInfo.getApkContentsSigners()) : info.signatures;
+        Signature[] signatures = Build.VERSION.SDK_INT >= 28 && info.signingInfo != null
+                ? info.signingInfo.getApkContentsSigners() : null;
+        if (signatures == null || signatures.length == 0) signatures = info.signatures;
         Set<String> hashes = new HashSet<>();
         if (signatures != null) for (Signature signature : signatures)
             hashes.add(UpdatePolicy.hex(UpdatePolicy.sha256().digest(signature.toByteArray())));
