@@ -340,6 +340,7 @@ public final class MainActivity extends NativeActivity {
             SessionVault vault = new SessionVault(this);
             vault.connect(value);
             Intent next = new Intent(this, vault.paired() ? WorkspaceActivity.class : PairActivity.class);
+            next.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             next.putExtra("share_text", sharedText);
             next.putExtra("native_link", getIntent().getStringExtra("native_link"));
             startActivity(next);

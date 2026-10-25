@@ -47,6 +47,7 @@ public final class PairActivity extends NativeActivity {
                     runOnUiThread(() -> {
                         if (isFinishing() || isDestroyed()) return;
                         Intent next = new Intent(this, WorkspaceActivity.class);
+                        next.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         next.putExtra("share_text", getIntent().getStringExtra("share_text")); startActivity(next); finish();
                     });
                 } catch (Exception e) {

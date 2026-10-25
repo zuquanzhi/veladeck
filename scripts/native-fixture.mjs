@@ -35,9 +35,12 @@ new Settings(store).set(
   'synthetic-fixture',
 );
 const audit = [];
-app.addHook('onRequest', async (request) => {
+app.server.on('request', (request) => {
   if (String(request.headers['user-agent']).startsWith('VelaDeckNative/'))
-    audit.push({ method: request.method, path: request.url.split('?')[0] });
+    audit.push({
+      method: request.method,
+      path: request.url.split('?')[0].replace(/^\/dock(?=\/api\/)/, ''),
+    });
 });
 const internal = { authorization: 'Bearer ' + config.INGEST_TOKEN };
 const samples = [

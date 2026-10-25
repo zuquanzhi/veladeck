@@ -90,6 +90,8 @@ public final class WorkspaceActivity extends NativeActivity {
             if (link != null && link.startsWith("/artifacts/")) artifact(link.substring(11));
             else if (link != null && link.startsWith("/threads/")) thread(link.substring(9), "对话");
             else if ("/approvals".equals(link)) show(2);
+            else if ("/ops".equals(link)) show(3);
+            else if ("/inbox".equals(link)) inbox("new");
         });
     }
 
