@@ -4,7 +4,7 @@
 
 Android now checks public GitHub Releases, including published previews, on launch once a day and on demand from the connection screen or workspace menu. Updates download only after confirmation, verify SHA-256, package/version and signing identity, and open the Android installer with scoped file access. Added fixed release signing via Actions Secrets, a pinned public certificate fingerprint and increasing semantic-version-derived Android codes. Development builds use a separate package and cannot offer installation updates. Existing v0.1.1 temporary-signed installs require a one-time manual replacement.
 
-Validation pending: application verification/build/smoke, Android update policy and download integrity tests, Android compile/lint, fixed-signature release build and publication. Device installation permission and installer behavior require device/emulator verification.
+Validation: local application verification (16 tests), production build and HTTP smoke passed. GitHub verification and signed release rehearsal passed, including 7 native update-policy/download-integrity tests, Android compile/lint and the pinned signing certificate check. Publication and the emulator install flow are recorded separately in docs/VALIDATION.md; physical-device checks remain pending.
 
 ## 0.1.1 — VelaDeck visual refresh
 

@@ -41,3 +41,12 @@ Cloud validation completed:
 - APK ZIP integrity and self-hosted archive inventory checks passed. Signature/package metadata is attached as `APK-VERIFICATION.txt`.
 
 Native-device visual regression and the live-service checks above remain pending.
+
+## 0.1.2 signed in-app updates
+
+- Local strict TypeScript, ESLint, 16 application tests, production build and real HTTP smoke passed.
+- [Verification 40176599778](https://github.com/zuquanzhi/veladeck/actions/runs/40176599778): application verification and Android build/lint/unit tests succeeded for `edf0071`. The 7 Android policy tests cover numeric version selection, downgrade rejection, exact release assets, digest/size restrictions, redirect trust, byte integrity and package/signature identity.
+- [Signed release rehearsal 40176605831](https://github.com/zuquanzhi/veladeck/actions/runs/40176605831): application and signed Android builds succeeded, including the pinned certificate comparison. This branch dispatch intentionally skipped publication. Signing secrets were verified through actual use, not merely local configuration.
+- Updated documentation links passed.
+
+A dedicated emulator smoke workflow uses current source stamped with an older version and the same fixed key, then upgrades through the actual public release API/download, installation-source permission UI and Android installer. This fixture is not the historical temporary-signed 0.1.1 APK. Results are recorded only after that workflow completes. Physical-device checks remain pending.
