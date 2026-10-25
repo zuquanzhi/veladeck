@@ -1,6 +1,46 @@
-import {test,expect} from 'vitest';
-import {fixture} from './helper.js';
-import {shouldPush} from '../src/services/pushService.js';
-import {preferences} from '../src/services/settings.js';
-test('quiet hours cross midnight, project opt-out and P3 are honored',()=>{const prefs=preferences.parse({});expect(shouldPush({priority:'P2',project:'x'},prefs,'23:30')).toBe(false);expect(shouldPush({priority:'P0',project:'x'},prefs,'23:30')).toBe(true);expect(shouldPush({priority:'P3',project:'x'},prefs,'12:00')).toBe(false);expect(shouldPush({priority:'P0',project:'x'},{...prefs,projects:{x:false}},'12:00')).toBe(false);});
-test('notify deduplicates and blocks remote push endpoints',async()=>{const f=await fixture();try{const cookie=await f.pair();const event={title:'Example event',idempotency_key:'event:1',priority:'P3'};const first=await f.app.inject({method:'POST',url:'/api/notify',headers:f.internal,payload:event});expect(first.statusCode).toBe(200);const second=await f.app.inject({method:'POST',url:'/api/notify',headers:f.internal,payload:event});expect(second.json().deduped).toBe(true);expect((await f.app.inject({method:'POST',url:'/api/push/subscribe',headers:{cookie},payload:{endpoint:'https://127.0.0.1/internal',keys:{auth:'bad',p256dh:'bad'}}})).statusCode).toBe(400);}finally{await f.cleanup();}});
+import { test, expect } from 'vitest';
+import { fixture } from './helper.js';
+import { shouldPush } from '../src/services/pushService.js';
+import { preferences } from '../src/services/settings.js';
+test('quiet hours cross midnight, project opt-out and P3 are honored', () => {
+  const prefs = preferences.parse({});
+  expect(shouldPush({ priority: 'P2', project: 'x' }, prefs, '23:30')).toBe(false);
+  expect(shouldPush({ priority: 'P0', project: 'x' }, prefs, '23:30')).toBe(true);
+  expect(shouldPush({ priority: 'P3', project: 'x' }, prefs, '12:00')).toBe(false);
+  expect(
+    shouldPush({ priority: 'P0', project: 'x' }, { ...prefs, projects: { x: false } }, '12:00'),
+  ).toBe(false);
+});
+test('notify deduplicates and blocks remote push endpoints', async () => {
+  const f = await fixture();
+  try {
+    const cookie = await f.pair();
+    const event = { title: 'Example event', idempotency_key: 'event:1', priority: 'P3' };
+    const first = await f.app.inject({
+      method: 'POST',
+      url: '/api/notify',
+      headers: f.internal,
+      payload: event,
+    });
+    expect(first.statusCode).toBe(200);
+    const second = await f.app.inject({
+      method: 'POST',
+      url: '/api/notify',
+      headers: f.internal,
+      payload: event,
+    });
+    expect(second.json().deduped).toBe(true);
+    expect(
+      (
+        await f.app.inject({
+          method: 'POST',
+          url: '/api/push/subscribe',
+          headers: { cookie },
+          payload: { endpoint: 'https://127.0.0.1/internal', keys: { auth: 'bad', p256dh: 'bad' } },
+        })
+      ).statusCode,
+    ).toBe(400);
+  } finally {
+    await f.cleanup();
+  }
+});

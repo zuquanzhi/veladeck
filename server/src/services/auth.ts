@@ -1,22 +1,214 @@
 import { randomInt } from 'node:crypto';
-import type { FastifyRequest,FastifyReply } from 'fastify';
-import { generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse } from '@simplewebauthn/server';
+import type { FastifyRequest, FastifyReply } from 'fastify';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
 import type { Store } from '../db/client.js';
 import type { Config } from '../config.js';
-import { id,secret,hash,check,audit,digest } from '../lib/security.js';
+import { id, secret, hash, check, audit, digest } from '../lib/security.js';
 import { fail } from '../lib/errors.js';
-export interface Device{id:string;name:string;token_hash:string;created_at:number;revoked_at:number|null;webauthn_cred_id:string|null;webauthn_pubkey:string|null;counter:number}
-interface Challenge{challenge:string;expires_at:number;scope:string}
-export class Auth{
-  constructor(public store:Store,public config:Config){store.tables(['devices','pair_codes','audit','schema_migrations']);store.db.exec('CREATE TABLE IF NOT EXISTS auth_challenges(device_id TEXT PRIMARY KEY, challenge TEXT NOT NULL, scope TEXT NOT NULL, expires_at INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS stepups(token_hash TEXT PRIMARY KEY,device_id TEXT NOT NULL,scope TEXT NOT NULL,expires_at INTEGER NOT NULL)');}
-  pairCode(){this.store.run('DELETE FROM pair_codes WHERE expires_at < ? OR used_at IS NOT NULL',Date.now());const code=String(randomInt(100000,1000000));this.store.run('INSERT INTO pair_codes VALUES(?,?,?,NULL)',hash(code),Date.now(),Date.now()+this.config.PAIR_CODE_TTL_SEC*1000);audit(this.store,'pair_code','local');return {code,expires_in:this.config.PAIR_CODE_TTL_SEC};}
-  claim(code:string,name:string,reply:FastifyReply){const now=Date.now();const found=this.store.all<{code_hash:string}>('SELECT code_hash FROM pair_codes WHERE used_at IS NULL AND expires_at > ?',now).find(p=>check(code,p.code_hash));if(!found)fail(401,'INVALID_PAIR_CODE','配对码无效或已使用。');const deviceId=id(),token=secret();this.store.db.transaction(()=>{if(!this.store.run('UPDATE pair_codes SET used_at=? WHERE code_hash=? AND used_at IS NULL',now,found.code_hash).changes)fail(401,'INVALID_PAIR_CODE','配对码已使用。');this.store.run('INSERT INTO devices(id,name,token_hash,created_at) VALUES(?,?,?,?)',deviceId,name,hash(token),now);audit(this.store,'pair',deviceId,deviceId);})();reply.setCookie('ad_device',deviceId+'.'+token,{path:'/',httpOnly:true,secure:true,sameSite:'strict',maxAge:this.config.SESSION_DAYS*86400});return {ok:true};}
-  device(req:FastifyRequest){const token=req.cookies.ad_device;if(!token)fail(401,'UNAUTHENTICATED','请先配对设备。');const [deviceId,key]=token.split('.');const d=this.store.get<Device>('SELECT * FROM devices WHERE id=?',deviceId??'');if(!d||!key||d.revoked_at||d.created_at+this.config.SESSION_DAYS*86400000<Date.now()||!check(key,d.token_hash))fail(401,'UNAUTHENTICATED','设备登录已失效。');this.store.run('UPDATE devices SET last_seen_at=? WHERE id=?',Date.now(),d.id);return d;}
-  async registerOptions(d:Device){const url=new URL(this.config.PUBLIC_BASE_URL);const o=await generateRegistrationOptions({rpName:'RunOtter',rpID:url.hostname,userID:new TextEncoder().encode(d.id),userName:d.name,attestationType:'none',authenticatorSelection:{userVerification:'required',residentKey:'preferred'}});this.challenge(d.id,o.challenge,'register');return o;}
-  challenge(device:string,value:string,scope:string){this.store.run('INSERT OR REPLACE INTO auth_challenges VALUES(?,?,?,?)',device,value,scope,Date.now()+300000);}
-  takeChallenge(d:Device,scope?:string){const c=this.store.get<Challenge>('SELECT * FROM auth_challenges WHERE device_id=?',d.id);this.store.run('DELETE FROM auth_challenges WHERE device_id=?',d.id);if(!c||c.expires_at<Date.now()||(scope&&c.scope!==scope))fail(400,'CHALLENGE_EXPIRED','验证已过期，请重试。');return c;}
-  async register(d:Device,response:Parameters<typeof verifyRegistrationResponse>[0]['response']){const c=this.takeChallenge(d,'register');const url=new URL(this.config.PUBLIC_BASE_URL);const v=await verifyRegistrationResponse({response,expectedChallenge:c.challenge,expectedOrigin:url.origin,expectedRPID:url.hostname,requireUserVerification:true});if(!v.verified||!v.registrationInfo)fail(403,'WEBAUTHN_FAILED','Passkey verification failed.');const cred=v.registrationInfo.credential;this.store.run('UPDATE devices SET webauthn_cred_id=?,webauthn_pubkey=?,counter=? WHERE id=?',cred.id,Buffer.from(cred.publicKey).toString('base64url'),cred.counter,d.id);audit(this.store,'register_passkey',d.id,d.id);return {ok:true};}
-  async loginOptions(d:Device,scope:string){if(!d.webauthn_cred_id)fail(403,'PASSKEY_REQUIRED','请先注册通行密钥。');const o=await generateAuthenticationOptions({rpID:new URL(this.config.PUBLIC_BASE_URL).hostname,userVerification:'required',allowCredentials:[{id:d.webauthn_cred_id}]});this.challenge(d.id,o.challenge,scope);return o;}
-  async login(d:Device,response:Parameters<typeof verifyAuthenticationResponse>[0]['response']){const c=this.takeChallenge(d);if(c.scope==='register'||!d.webauthn_cred_id||!d.webauthn_pubkey)fail(403,'PASSKEY_REQUIRED','请先注册通行密钥。');const url=new URL(this.config.PUBLIC_BASE_URL);const v=await verifyAuthenticationResponse({response,expectedChallenge:c.challenge,expectedOrigin:url.origin,expectedRPID:url.hostname,requireUserVerification:true,credential:{id:d.webauthn_cred_id,publicKey:Buffer.from(d.webauthn_pubkey,'base64url'),counter:d.counter}});if(!v.verified)fail(403,'WEBAUTHN_FAILED','Passkey verification failed.');this.store.run('UPDATE devices SET counter=? WHERE id=?',v.authenticationInfo.newCounter,d.id);const token=secret();this.store.run('DELETE FROM stepups WHERE expires_at<?',Date.now());this.store.run('INSERT INTO stepups VALUES(?,?,?,?)',digest(token),d.id,c.scope,Date.now()+60000);audit(this.store,'passkey_assertion',d.id,d.id);return {step_up_token:token};}
-  consume(d:Device,scope:string,token:string){const result=this.store.run('DELETE FROM stepups WHERE token_hash=? AND device_id=? AND scope=? AND expires_at>?',digest(token),d.id,scope,Date.now());if(!result.changes)fail(403,'ASSERTION_REQUIRED','此操作需要新的通行密钥验证。');}
+export interface Device {
+  id: string;
+  name: string;
+  token_hash: string;
+  created_at: number;
+  revoked_at: number | null;
+  webauthn_cred_id: string | null;
+  webauthn_pubkey: string | null;
+  counter: number;
+}
+interface Challenge {
+  challenge: string;
+  expires_at: number;
+  scope: string;
+}
+export class Auth {
+  constructor(
+    public store: Store,
+    public config: Config,
+  ) {
+    store.tables(['devices', 'pair_codes', 'audit', 'schema_migrations']);
+  }
+  pairCode() {
+    this.store.run(
+      'DELETE FROM pair_codes WHERE expires_at < ? OR used_at IS NOT NULL',
+      Date.now(),
+    );
+    const code = String(randomInt(100000, 1000000));
+    this.store.run(
+      'INSERT INTO pair_codes VALUES(?,?,?,NULL)',
+      hash(code),
+      Date.now(),
+      Date.now() + this.config.PAIR_CODE_TTL_SEC * 1000,
+    );
+    audit(this.store, 'pair_code', 'local');
+    return { code, expires_in: this.config.PAIR_CODE_TTL_SEC };
+  }
+  claim(code: string, name: string, reply: FastifyReply) {
+    const now = Date.now();
+    const found = this.store
+      .all<{ code_hash: string }>(
+        'SELECT code_hash FROM pair_codes WHERE used_at IS NULL AND expires_at > ?',
+        now,
+      )
+      .find((p) => check(code, p.code_hash));
+    if (!found) fail(401, 'INVALID_PAIR_CODE', '配对码无效或已使用。');
+    const deviceId = id(),
+      token = secret();
+    this.store.db.transaction(() => {
+      if (
+        !this.store.run(
+          'UPDATE pair_codes SET used_at=? WHERE code_hash=? AND used_at IS NULL',
+          now,
+          found.code_hash,
+        ).changes
+      )
+        fail(401, 'INVALID_PAIR_CODE', '配对码已使用。');
+      this.store.run(
+        'INSERT INTO devices(id,name,token_hash,created_at) VALUES(?,?,?,?)',
+        deviceId,
+        name,
+        hash(token),
+        now,
+      );
+      audit(this.store, 'pair', deviceId, deviceId);
+    })();
+    reply.setCookie('ad_device', deviceId + '.' + token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: this.config.SESSION_DAYS * 86400,
+    });
+    return { ok: true };
+  }
+  device(req: FastifyRequest) {
+    const token = req.cookies.ad_device;
+    if (!token) fail(401, 'UNAUTHENTICATED', '请先配对设备。');
+    const [deviceId, key] = token.split('.');
+    const d = this.store.get<Device>('SELECT * FROM devices WHERE id=?', deviceId ?? '');
+    if (
+      !d ||
+      !key ||
+      d.revoked_at ||
+      d.created_at + this.config.SESSION_DAYS * 86400000 < Date.now() ||
+      !check(key, d.token_hash)
+    )
+      fail(401, 'UNAUTHENTICATED', '设备登录已失效。');
+    this.store.run('UPDATE devices SET last_seen_at=? WHERE id=?', Date.now(), d.id);
+    return d;
+  }
+  async registerOptions(d: Device) {
+    const url = new URL(this.config.PUBLIC_BASE_URL);
+    const o = await generateRegistrationOptions({
+      rpName: 'RunOtter',
+      rpID: url.hostname,
+      userID: new TextEncoder().encode(d.id),
+      userName: d.name,
+      attestationType: 'none',
+      authenticatorSelection: { userVerification: 'required', residentKey: 'preferred' },
+    });
+    this.challenge(d.id, o.challenge, 'register');
+    return o;
+  }
+  challenge(device: string, value: string, scope: string) {
+    this.store.run(
+      'INSERT OR REPLACE INTO auth_challenges VALUES(?,?,?,?)',
+      device,
+      value,
+      scope,
+      Date.now() + 300000,
+    );
+  }
+  takeChallenge(d: Device, scope?: string) {
+    const c = this.store.get<Challenge>('SELECT * FROM auth_challenges WHERE device_id=?', d.id);
+    this.store.run('DELETE FROM auth_challenges WHERE device_id=?', d.id);
+    if (!c || c.expires_at < Date.now() || (scope && c.scope !== scope))
+      fail(400, 'CHALLENGE_EXPIRED', '验证已过期，请重试。');
+    return c;
+  }
+  async register(
+    d: Device,
+    response: Parameters<typeof verifyRegistrationResponse>[0]['response'],
+  ) {
+    const c = this.takeChallenge(d, 'register');
+    const url = new URL(this.config.PUBLIC_BASE_URL);
+    const v = await verifyRegistrationResponse({
+      response,
+      expectedChallenge: c.challenge,
+      expectedOrigin: url.origin,
+      expectedRPID: url.hostname,
+      requireUserVerification: true,
+    });
+    if (!v.verified || !v.registrationInfo)
+      fail(403, 'WEBAUTHN_FAILED', 'Passkey verification failed.');
+    const cred = v.registrationInfo.credential;
+    this.store.run(
+      'UPDATE devices SET webauthn_cred_id=?,webauthn_pubkey=?,counter=? WHERE id=?',
+      cred.id,
+      Buffer.from(cred.publicKey).toString('base64url'),
+      cred.counter,
+      d.id,
+    );
+    audit(this.store, 'register_passkey', d.id, d.id);
+    return { ok: true };
+  }
+  async loginOptions(d: Device, scope: string) {
+    if (!d.webauthn_cred_id) fail(403, 'PASSKEY_REQUIRED', '请先注册通行密钥。');
+    const o = await generateAuthenticationOptions({
+      rpID: new URL(this.config.PUBLIC_BASE_URL).hostname,
+      userVerification: 'required',
+      allowCredentials: [{ id: d.webauthn_cred_id }],
+    });
+    this.challenge(d.id, o.challenge, scope);
+    return o;
+  }
+  async login(d: Device, response: Parameters<typeof verifyAuthenticationResponse>[0]['response']) {
+    const c = this.takeChallenge(d);
+    if (c.scope === 'register' || !d.webauthn_cred_id || !d.webauthn_pubkey)
+      fail(403, 'PASSKEY_REQUIRED', '请先注册通行密钥。');
+    const url = new URL(this.config.PUBLIC_BASE_URL);
+    const v = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge: c.challenge,
+      expectedOrigin: url.origin,
+      expectedRPID: url.hostname,
+      requireUserVerification: true,
+      credential: {
+        id: d.webauthn_cred_id,
+        publicKey: Buffer.from(d.webauthn_pubkey, 'base64url'),
+        counter: d.counter,
+      },
+    });
+    if (!v.verified) fail(403, 'WEBAUTHN_FAILED', 'Passkey verification failed.');
+    this.store.run(
+      'UPDATE devices SET counter=? WHERE id=?',
+      v.authenticationInfo.newCounter,
+      d.id,
+    );
+    const token = secret();
+    this.store.run('DELETE FROM stepups WHERE expires_at<?', Date.now());
+    this.store.run(
+      'INSERT INTO stepups VALUES(?,?,?,?)',
+      digest(token),
+      d.id,
+      c.scope,
+      Date.now() + 60000,
+    );
+    audit(this.store, 'passkey_assertion', d.id, d.id);
+    return { step_up_token: token };
+  }
+  consume(d: Device, scope: string, token: string) {
+    const result = this.store.run(
+      'DELETE FROM stepups WHERE token_hash=? AND device_id=? AND scope=? AND expires_at>?',
+      digest(token),
+      d.id,
+      scope,
+      Date.now(),
+    );
+    if (!result.changes) fail(403, 'ASSERTION_REQUIRED', '此操作需要新的通行密钥验证。');
+  }
 }

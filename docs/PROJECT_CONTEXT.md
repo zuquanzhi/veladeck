@@ -1,14 +1,12 @@
 # RunOtter 项目上下文
 
-本地项目目录：D:\program\runotter。
-GitHub 仓库：https://github.com/zuquanzhi/runotter。
+本地目录：D:/program/runotter。
+GitHub：https://github.com/zuquanzhi/runotter。
 
-2026-10-25，用户指定本项目为当前对话主任务，并提供本地仓库目录。
+RunOtter 是本对话主任务。用户要求开发初版、推送 GitHub 并通过 Actions/Release 生成 APK。
 
-产品定位：单用户、移动端优先、可自托管的 AI 智能体工作台，包含产物、对话、审批、推送、运维与成本面板。
+当前：M0–M7 核心工作流与 M8 分发代码已实现，15 项自动化测试、生产构建、真实 HTTP smoke 和手机 Chrome 界面 QA 已通过。运行时依赖审计为零漏洞。Android 构建和 Release 将由 GitHub Actions 实际执行；不得把配置完成等同于构建完成。
 
-根目录 SPEC.md、AGENTS.md、PROMPTS.md 与 sql/schema.sql 来自已核对的原始开发包，逐字节保留。文件中的 Agent Dock 是原始项目代号；对外品牌为 RunOtter。原始 ZIP 与邮件来源校验记录仍保留在 Axiom 资源目录，不复制到此项目。
+运行基线：Node 22 LTS。品牌为 RunOtter，SPEC.md 中 Agent Dock 是原始代号。安全修复所需的版本变更见 DECISIONS.md。原始开发包与来源校验记录保留在 Axiom 资源目录，未复制邮件信息或设备运行凭据到此仓库。
 
-当前阶段：开发包已导入，M0 尚未开始。先读 SPEC.md 与 AGENTS.md，再按 PROMPTS.md 每次完成一个里程碑。初步规格问题见 INITIAL_REVIEW.md。
-
-用户希望在此独立仓库进行 Git 版本管理，并使用 GitHub Actions 做检查、构建和 Release。当前尚未创建 Actions 工作流、Git 提交、标签或 Release，也未推送变更。
+本版是可自托管的预览版，APK 使用 Android Custom Tabs 连接用户填写的 HTTPS 地址。未部署云端服务，未验证真实 DSH、手机后台推送和硬件通行密钥。其余原始规格差距和真机清单见 DECISIONS.md、VALIDATION.md 与 README.md。

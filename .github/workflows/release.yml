@@ -1,0 +1,74 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - run: npm run build
+      - run: bash scripts/smoke.sh
+      - name: Package self-hosted server
+        run: |
+          mkdir release
+          cp -R dist sql scripts server package.json package-lock.json .env.example README.md LICENSE docs release/
+          tar -czf runotter-server.tar.gz -C release .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server
+          path: runotter-server.tar.gz
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Build and lint Android companion
+        run: gradle --no-daemon -p android assembleDebug lintDebug
+      - name: Verify installable APK
+        run: |
+          mkdir apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk/RunOtter-0.1.0-preview.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose apk/RunOtter-0.1.0-preview.apk > apk/APK-VERIFICATION.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging apk/RunOtter-0.1.0-preview.apk >> apk/APK-VERIFICATION.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: apk/*
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [web, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd release-assets
+          sha256sum *.apk *.tar.gz > SHA256SUMS.txt
+          gh release create "$TAG" ./* --verify-tag --prerelease --title "RunOtter $TAG · First Preview" --notes-file ../docs/RELEASE_NOTES.md

@@ -1,0 +1,16 @@
+# Merge manually with your existing authenticated Caddy site. This file is not installed automatically.
+# Keep the application bound to 127.0.0.1:8090.
+# Set PUBLIC_BASE_URL=https://your-host.example/your-private-prefix/dock.
+
+# handle /your-private-prefix/dock* {
+#     # Insert your existing dsh-auth/forward_auth directive here.
+#     reverse_proxy 127.0.0.1:8090 {
+#         flush_interval -1
+#     }
+# }
+
+# If public read-only shares are wanted, explicitly route only
+# /your-private-prefix/dock/s/* outside the outer authentication gate.
+# Share tokens, expiry, revocation and rate limiting remain enforced by RunOtter.
+# Never expose /api/artifacts POST, /api/notify or /api/pair/code through a proxy:
+# forwarded ingress headers are rejected even with a valid internal token.

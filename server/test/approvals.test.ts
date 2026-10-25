@@ -1,5 +1,56 @@
-import {test,expect} from 'vitest';
-import {fixture} from './helper.js';
-import {Store} from '../src/db/client.js';
-import {id} from '../src/lib/security.js';
-test('dangerous approvals cannot bypass passkeys and expired decisions are rejected',async()=>{const f=await fixture();const store=new Store(f.config.DATA_DIR);try{const cookie=await f.pair();const thread=id(),key=id();store.run('INSERT INTO threads(id,title,created_at,updated_at) VALUES(?,?,?,?)',thread,'Test',Date.now(),Date.now());store.run('INSERT INTO approvals(id,thread_id,title,risk,expires_at,created_at) VALUES(?,?,?,?,?,?)',key,thread,'Delete sample data','danger',Date.now()+600000,Date.now());const result=await f.app.inject({method:'POST',url:'/api/approvals/'+key+'/approve',headers:{cookie},payload:{confirmed:true}});expect(result.statusCode).toBe(403);expect(store.get<{status:string}>('SELECT status FROM approvals WHERE id=?',key)?.status).toBe('pending');store.run('UPDATE approvals SET expires_at=? WHERE id=?',Date.now()-1000,key);expect((await f.app.inject({method:'POST',url:'/api/approvals/'+key+'/approve',headers:{cookie},payload:{confirmed:true}})).statusCode).toBe(409);expect(store.get<{status:string}>('SELECT status FROM approvals WHERE id=?',key)?.status).toBe('expired');}finally{store.close();await f.cleanup();}});
+import { test, expect } from 'vitest';
+import { fixture } from './helper.js';
+import { Store } from '../src/db/client.js';
+import { id } from '../src/lib/security.js';
+test('dangerous approvals cannot bypass passkeys and expired decisions are rejected', async () => {
+  const f = await fixture();
+  const store = new Store(f.config.DATA_DIR);
+  try {
+    const cookie = await f.pair();
+    const thread = id(),
+      key = id();
+    store.run(
+      'INSERT INTO threads(id,title,created_at,updated_at) VALUES(?,?,?,?)',
+      thread,
+      'Test',
+      Date.now(),
+      Date.now(),
+    );
+    store.run(
+      'INSERT INTO approvals(id,thread_id,title,risk,expires_at,created_at) VALUES(?,?,?,?,?,?)',
+      key,
+      thread,
+      'Delete sample data',
+      'danger',
+      Date.now() + 600000,
+      Date.now(),
+    );
+    const result = await f.app.inject({
+      method: 'POST',
+      url: '/api/approvals/' + key + '/approve',
+      headers: { cookie },
+      payload: { confirmed: true },
+    });
+    expect(result.statusCode).toBe(403);
+    expect(
+      store.get<{ status: string }>('SELECT status FROM approvals WHERE id=?', key)?.status,
+    ).toBe('pending');
+    store.run('UPDATE approvals SET expires_at=? WHERE id=?', Date.now() - 1000, key);
+    expect(
+      (
+        await f.app.inject({
+          method: 'POST',
+          url: '/api/approvals/' + key + '/approve',
+          headers: { cookie },
+          payload: { confirmed: true },
+        })
+      ).statusCode,
+    ).toBe(409);
+    expect(
+      store.get<{ status: string }>('SELECT status FROM approvals WHERE id=?', key)?.status,
+    ).toBe('expired');
+  } finally {
+    store.close();
+    await f.cleanup();
+  }
+});

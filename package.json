@@ -1,24 +1,58 @@
 {
-  "name": "runotter", "version": "0.1.0", "private": true, "type": "module",
-  "engines": { "node": ">=20.19" },
+  "name": "runotter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "node scripts/dev.mjs", "build": "tsc -p server/tsconfig.json && vite build",
+    "dev": "node scripts/dev.mjs",
+    "build": "tsc -p server/tsconfig.json && vite build",
     "start": "node --env-file-if-exists=.env dist/server/index.js",
     "verify": "tsc --noEmit && eslint . && vitest run",
-    "smoke": "node --import tsx scripts/smoke.ts", "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
-    "pair": "node --env-file-if-exists=.env --import tsx scripts/pair.ts", "test": "vitest run"
+    "smoke": "node --import tsx scripts/smoke.ts",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
+    "pair": "node --env-file-if-exists=.env --import tsx scripts/pair.ts",
+    "test": "vitest run"
   },
   "dependencies": {
-    "fastify": "^5.6.0", "@fastify/cookie": "11.0.2", "@fastify/static": "^8.2.0",
-    "better-sqlite3": "12.4.1", "zod": "^3.25.0", "pino": "^9.9.0", "dayjs": "^1.11.13",
-    "react": "^18.3.1", "react-dom": "^18.3.1", "react-router-dom": "^6.30.1", "@tanstack/react-query": "^5.90.0",
-    "web-push": "^3.6.7", "@simplewebauthn/server": "^13.2.0", "@simplewebauthn/browser": "^13.2.0",
-    "react-markdown": "^10.1.0", "remark-gfm": "^4.0.1", "diff": "^8.0.2"
+    "fastify": "^5.6.0",
+    "@fastify/cookie": "11.0.2",
+    "@fastify/static": "10.1.7",
+    "better-sqlite3": "12.4.1",
+    "zod": "4.6.7",
+    "pino": "^9.9.0",
+    "dayjs": "^1.11.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "7.18.4",
+    "@tanstack/react-query": "^5.90.0",
+    "web-push": "^3.6.7",
+    "@simplewebauthn/server": "^13.2.0",
+    "@simplewebauthn/browser": "^13.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "diff": "^8.0.2"
   },
   "devDependencies": {
-    "typescript": "^5.9.2", "tsx": "^4.20.0", "vite": "^6.3.0", "@vitejs/plugin-react": "^4.7.0", "vite-plugin-pwa": "^1.0.3",
-    "tailwindcss": "^3.4.17", "postcss": "^8.5.0", "autoprefixer": "^10.4.21",
-    "vitest": "^3.2.4", "eslint": "^9.36.0", "typescript-eslint": "^8.44.0", "@eslint/js": "^9.36.0",
-    "@types/node": "^22.18.0", "@types/react": "^18.3.24", "@types/react-dom": "^18.3.7", "@types/better-sqlite3": "^7.6.13", "@types/web-push": "^3.6.4"
+    "typescript": "^5.9.2",
+    "tsx": "^4.20.0",
+    "prettier": "^3.6.2",
+    "vite": "^6.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite-plugin-pwa": "^1.0.3",
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8.5.0",
+    "autoprefixer": "^10.4.21",
+    "vitest": "^3.2.4",
+    "eslint": "^9.36.0",
+    "typescript-eslint": "^8.44.0",
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^22.18.0",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/web-push": "^3.6.4"
   }
 }

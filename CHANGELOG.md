@@ -59,3 +59,11 @@ Share-target capture, idempotent Inbox submission, task conversion and archive, 
 Verification pending. PWA share-panel registration needs installation and a physical Android check; no hosted endpoint has been provisioned by this development task.
 
 M7 validation: all tests including public share hashing/revocation/XSS and Inbox idempotency passed; production PWA build and extended HTTP smoke passed.
+
+## M8 — Distribution preview
+
+Android companion with configurable HTTPS address and text share handling; GitHub CI/release workflows, installable development-signed APK, signature metadata and checksums; systemd installer and private backup hook; deployment and device-regression documentation. No production host configuration is changed by local development or CI.
+
+Validation and publication pending. Physical-device and live-infrastructure checks remain open; release notes explicitly describe the preview scope and development signing.
+
+M8 local validation: Node 22 baseline; 15 tests, production PWA build, extended HTTP smoke and mobile Chrome QA passed. Runtime dependency audit is clean. Android CI and publication remain pending at this commit.

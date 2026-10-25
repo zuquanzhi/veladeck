@@ -1,1 +1,1 @@
-export default {content:['./web/**/*.{html,tsx}'],theme:{extend:{}},plugins:[]};
+export default { content: ['./web/**/*.{html,tsx}'], theme: { extend: {} }, plugins: [] };

@@ -1,3 +1,54 @@
-import {useState} from 'react';
-import {api} from '../lib/api';
-export function Pair({done}:{done:()=>void}){const[code,setCode]=useState(''),[name,setName]=useState('我的手机'),[error,setError]=useState(''),[busy,setBusy]=useState(false);return <div className="pair"><div className="otter">🦦</div><p className="eyebrow">A LITTLE OTTER. A LOT DONE.</p><h1>工作，尽在掌中。</h1><p className="muted">连接你的智能体，接住每一次进展。</p><form onSubmit={e=>{e.preventDefault();setBusy(true);void api('/api/pair/claim','POST',{code,device_name:name}).then(done).catch(e=>setError(String(e))).finally(()=>setBusy(false));}}><label>设备名称<input value={name} onChange={e=>setName(e.target.value)} maxLength={80} required/></label><label>一次性配对码<input className="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" value={code} onChange={e=>setCode(e.target.value)} placeholder="000000" maxLength={6} required/></label>{error&&<div role="alert" className="error">{error}</div>}<button disabled={busy}>{busy?'正在连接…':'连接工作台 →'}</button></form><p className="muted small">在服务器运行 npm run pair 获取配对码。请通过 HTTPS 或 localhost 访问。</p></div>;}
+import { useState } from 'react';
+import { api } from '../lib/api';
+export function Pair({ done }: { done: () => void }) {
+  const [code, setCode] = useState(''),
+    [name, setName] = useState('我的手机'),
+    [error, setError] = useState(''),
+    [busy, setBusy] = useState(false);
+  return (
+    <div className="pair">
+      <div className="otter">🦦</div>
+      <p className="eyebrow">A LITTLE OTTER. A LOT DONE.</p>
+      <h1>工作，尽在掌中。</h1>
+      <p className="muted">连接你的智能体，接住每一次进展。</p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setBusy(true);
+          void api('/api/pair/claim', 'POST', { code, device_name: name })
+            .then(done)
+            .catch((e) => setError(String(e)))
+            .finally(() => setBusy(false));
+        }}
+      >
+        <label>
+          设备名称
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required />
+        </label>
+        <label>
+          一次性配对码
+          <input
+            className="code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="000000"
+            maxLength={6}
+            required
+          />
+        </label>
+        {error && (
+          <div role="alert" className="error">
+            {error}
+          </div>
+        )}
+        <button disabled={busy}>{busy ? '正在连接…' : '连接工作台 →'}</button>
+      </form>
+      <p className="muted small">
+        在服务器运行 npm run pair 获取配对码。请通过 HTTPS 或 localhost 访问。
+      </p>
+    </div>
+  );
+}
