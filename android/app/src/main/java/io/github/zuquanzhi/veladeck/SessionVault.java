@@ -25,7 +25,7 @@ final class SessionVault {
         try { uri = URI.create(value.trim().replaceAll("/+$", "")); }
         catch (IllegalArgumentException error) { throw new IllegalArgumentException("请输入完整的 HTTPS 工作台地址。"); }
         if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null
-                || uri.getQuery() != null || uri.getFragment() != null || uri.getPort() == 0
+                || uri.getQuery() != null || uri.getFragment() != null || uri.getPort() == 0 || uri.getPort() > 65535
                 || uri.getPath().contains("..") || uri.getRawPath().contains("%"))
             throw new IllegalArgumentException("请输入 HTTPS 地址，不要包含账号、参数或片段。");
         return uri.toString();
@@ -61,7 +61,7 @@ final class SessionVault {
 
     synchronized void clearCookie() { preferences.edit().remove("cookie").remove("iv").commit(); }
 
-    private static SecretKey key() throws Exception {
+    private static synchronized SecretKey key() throws Exception {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore");
         store.load(null);
         if (store.containsAlias(KEY)) return (SecretKey) store.getKey(KEY, null);

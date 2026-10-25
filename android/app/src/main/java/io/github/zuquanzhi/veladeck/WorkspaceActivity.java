@@ -60,6 +60,7 @@ public final class WorkspaceActivity extends NativeActivity {
     private NativeApi.Stream stream;
     private long lastSequence;
     private Runnable progressTask, refreshTask;
+    private android.view.ViewTreeObserver.OnScrollChangedListener readingListener;
     private File pendingSave;
 
     @Override public void onCreate(Bundle state) {
@@ -113,6 +114,8 @@ public final class WorkspaceActivity extends NativeActivity {
 
     private void begin(String title, String subtitle, String label) {
         generation++;
+        if (readingListener != null && scroll != null && scroll.getViewTreeObserver().isAlive()) scroll.getViewTreeObserver().removeOnScrollChangedListener(readingListener);
+        readingListener = null;
         if (stream != null) { stream.close(); stream = null; }
         if (progressTask != null) handler.removeCallbacks(progressTask);
         if (refreshTask != null) handler.removeCallbacks(refreshTask);
@@ -240,11 +243,13 @@ public final class WorkspaceActivity extends NativeActivity {
                 scroll.post(() -> scroll.scrollTo(0, (int) (item.optDouble("read_progress") * Math.max(0, body.getHeight() - scroll.getHeight()))));
             });
             int captured = generation;
-            scroll.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            readingListener = () -> {
                 if (progressTask != null) handler.removeCallbacks(progressTask);
-                progressTask = () -> { if (generation == captured) worker.execute(() -> { try { api.send("/api/artifacts/" + id + "/progress", "POST", NativeApi.object("value", Math.min(1d, (double) scroll.getScrollY() / Math.max(1, body.getHeight() - scroll.getHeight())))); } catch (Exception ignored) {} }); };
+                double progress = Math.min(1d, (double) scroll.getScrollY() / Math.max(1, body.getHeight() - scroll.getHeight()));
+                progressTask = () -> { if (generation == captured) worker.execute(() -> { try { api.send("/api/artifacts/" + id + "/progress", "POST", NativeApi.object("value", progress)); } catch (Exception ignored) {} }); };
                 handler.postDelayed(progressTask, 1000);
-            });
+            };
+            scroll.getViewTreeObserver().addOnScrollChangedListener(readingListener);
         });
     }
 
@@ -286,7 +291,7 @@ public final class WorkspaceActivity extends NativeActivity {
     private void download(JSONObject item) {
         toast("正在下载…"); run(() -> {
             byte[] bytes = api.bytes("/api/artifacts/" + item.optString("id") + "/download");
-            String kind = item.optString("kind"), extension = kind.equals("markdown") ? "md" : kind.equals("image") ? "png" : kind.matches("pdf|zip|html|csv|json|log|diff") ? kind : "txt";
+            String kind = item.optString("kind"), extension = kind.equals("markdown") ? "md" : kind.equals("image") ? (bytes.length > 0 && (bytes[0] & 255) == 0x89 ? "png" : bytes.length > 0 && (bytes[0] & 255) == 0xff ? "jpg" : "webp") : kind.matches("pdf|zip|html|csv|json|log|diff") ? kind : "txt";
             File directory = new File(getCacheDir(), "artifacts"); if (!directory.isDirectory() && !directory.mkdirs()) throw new java.io.IOException("Cache unavailable");
             File file = new File(directory, item.optString("id") + "." + extension); Files.write(file.toPath(), bytes); return file;
         }, file -> new AlertDialog.Builder(this).setTitle("文件已下载").setItems(new String[]{"打开", "保存副本", "分享文件"}, (d, option) -> {

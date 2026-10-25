@@ -97,6 +97,9 @@ try:
     screen('05-upgrade-installed')
     adb('shell', 'am', 'force-stop', PACKAGE)
     adb('shell', 'am', 'start', '-n', ACTIVITY)
+    # The version label and updater status live below the connection form.
+    time.sleep(2)
+    adb('shell', 'input', 'swipe', str(width // 2), str(height * 85 // 100), str(width // 2), str(height // 4), '400')
     wait_node(lambda n: n.get('text', '').startswith('v' + CONFIG['target'] + '-preview'))
     text('当前已是最新版本。')
     screen('06-updated-app')
