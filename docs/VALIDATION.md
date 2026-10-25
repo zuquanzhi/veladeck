@@ -56,3 +56,13 @@ Release publication verification:
 - [Release 40177047399](https://github.com/zuquanzhi/veladeck/actions/runs/40177047399) succeeded for [v0.1.2](https://github.com/zuquanzhi/veladeck/releases/tag/v0.1.2), source `c4f4f64`, published 2026-10-25 08:34:09 UTC. Main verification 40177044594 also passed.
 - Downloaded all four published assets. GitHub asset digests and the APK/server checksum manifest match the local files. APK ZIP integrity passed. APK SHA-256: `58181641fba674fc18e0e08a3041f0f774dc8dff6c7296c1c470d2107e8bdd32`.
 - Verified package `io.github.zuquanzhi.veladeck.preview`, code `1002`, version `0.1.2-preview`, and fixed signer SHA-256 `7a149537b057d66450254fc84b85a099707fb574892b8427452c8a4dd06a715d` against the repository pin and published APK verification metadata.
+
+## 0.2.0 native Android workspace
+
+- Local strict TypeScript, ESLint and **17 backend/application tests** passed, including the native passkey association/certificate contract.
+- [Verification 40197421011](https://github.com/zuquanzhi/veladeck/actions/runs/40197421011) passed backend build/smoke plus Android compile, lint and **10 native unit tests** for `959ff2d`.
+- [Native Android smoke 40197421158](https://github.com/zuquanzhi/veladeck/actions/runs/40197421158) **passed on Android API 29**. It used native Views and the real backend over HTTPS, with clearly synthetic data and a debug-only ephemeral certificate.
+- The emulator drove native pairing, artifact search/detail/star, real SSE conversation, approval forwarding to the waiting fixture subprocess, Inbox submission/archive, operations, dark-theme persistence, Keystore-encrypted session/restart, a forced system-scheduled notification and device revocation. The request audit contains API methods/paths only and confirms no browser page/assets were loaded.
+- Native screenshots in docs/screenshots are actual emulator captures. The earlier failed smoke runs were diagnosed: Android 10 needed the legacy certificate-collection flag, then the UI driver needed to account for Switch accessibility ON/OFF suffixes. Neither was bypassed with a weaker signature rule.
+
+Physical passkeys/provider and domain-association behavior, real-device background timing, production deployment and live DSH remain unverified. The emulator upgrade workflow uses a version-stamped test baseline with the same fixed key; it does not claim that the historical temporary-signed 0.1.1 APK can cover-install a new key. Final release and signed-upgrade results are appended after completion.

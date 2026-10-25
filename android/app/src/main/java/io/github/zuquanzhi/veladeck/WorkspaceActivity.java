@@ -590,7 +590,7 @@ public final class WorkspaceActivity extends NativeActivity {
             receive.setOnCheckedChangeListener((v, checked) -> updatePreference(preferences, "notifications", checked, () -> {})); notifications.addView(receive);
             Switch nativeNotify = new Switch(this); nativeNotify.setText("本机后台提醒"); nativeNotify.setTextColor(ui.ink); nativeNotify.setChecked(getSharedPreferences("native_preferences", MODE_PRIVATE).getBoolean("notifications", false));
             nativeNotify.setOnCheckedChangeListener((button, checked) -> toggleNotifications(checked)); notifications.addView(nativeNotify);
-            ui.description(notifications, "后台定时检查进展，实际执行时机由 Android 安排；无需保持电脑上的 App 在线。");
+            ui.description(notifications, "后台按系统周期检查进展，工作台后端需要保持可达。");
             Switch privacy = new Switch(this); privacy.setText("锁屏隐藏内容"); privacy.setTextColor(ui.ink); privacy.setChecked(preferences.optBoolean("lockscreen_hide", true));
             privacy.setOnCheckedChangeListener((v, checked) -> updatePreference(preferences, "lockscreen_hide", checked, () -> {})); notifications.addView(privacy);
             ui.actions(notifications, ui.button("免打扰开始 " + preferences.optString("dnd_start"), false, () -> chooseTime(preferences, "dnd_start")), ui.button("结束 " + preferences.optString("dnd_end"), false, () -> chooseTime(preferences, "dnd_end")));

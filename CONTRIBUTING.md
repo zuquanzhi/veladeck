@@ -29,6 +29,8 @@ bash scripts/smoke.sh
 
 Keep changes focused, explain the visible behavior, and include relevant verification. UI changes should include light/dark screenshots at a phone width. Fixtures and screenshots must use clearly labelled synthetic content.
 
+Android uses Java/native Views with Credential Manager and the same HTTPS JSON/SSE API. Run `gradle --no-daemon -p android testDebugUnitTest assembleDebug lintDebug` with JDK 17 and Android SDK 35. Development APKs use `.dev` and never substitute for fixed-key Release APKs. The Native Android smoke workflow exercises a disposable debug client against a real synthetic HTTPS backend; the temporary test certificate never enters Release builds. See [native client architecture](docs/NATIVE_ANDROID.md).
+
 ## Boundaries worth keeping
 
 The backend listens on loopback. Browser tokens never go in localStorage. Dangerous approvals require a passkey assertion. HTML previews remain script-disabled. Do not commit runtime data, keys, signing certificates or credentials. Avoid introducing a UI framework, ORM or state library for a small change.

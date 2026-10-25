@@ -94,4 +94,4 @@ jobs:
         run: |
           cd release-assets
           sha256sum *.apk *.tar.gz > SHA256SUMS.txt
-          gh release create "$TAG" ./* --verify-tag --prerelease --title "VelaDeck $TAG · In-app Updates" --notes-file ../docs/RELEASE_NOTES.md
+          gh release create "$TAG" ./* --verify-tag --prerelease --title "VelaDeck $TAG · Native Android" --notes-file ../docs/RELEASE_NOTES.md

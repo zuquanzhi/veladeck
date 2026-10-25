@@ -4,13 +4,15 @@
 
 A self-hosted, mobile-first workspace for agent artifacts, conversations, approvals, notifications, and operations. 单用户智能体手机工作台。
 
-**0.1.2 adds signed in-app updates.** The core workflows are implemented; live infrastructure and physical-device integration checks remain open. [Validation](VALIDATION.md) · [Design decisions and remaining scope](DECISIONS.md).
+**0.2.0 adds the native Android workspace.** The core workflows are implemented; live infrastructure and physical-device integration checks remain open. [Validation](VALIDATION.md) · [Design decisions and remaining scope](DECISIONS.md).
 
 ## Android APK
 
-Download `VelaDeck-0.1.2-preview.apk` from [Releases](https://github.com/zuquanzhi/veladeck/releases). Android 8.0+ and a compatible browser are required. Enter your self-hosted HTTPS workspace URL, then enter a pairing code generated on the server. The APK is a browser-backed companion with an Android share target; it does not provide a hosted server or run an LLM on your phone.
+Download `VelaDeck-0.2.0-preview.apk` from [Releases](https://github.com/zuquanzhi/veladeck/releases). Android 8.0+ is required. Enter your HTTPS API workspace URL, then pair with a one-time code generated on the server. All workspace screens are native Android Views; the APK does not contain a hosted server or local LLM.
 
-Release APKs from 0.1.2 use a fixed signing key and the same `.preview` package ID. The app checks GitHub daily at launch; check manually from the connection screen or the workspace menu’s **应用更新** entry. Downloads and installation require user confirmation. Existing temporary-signed 0.1.1 clients require a one-time uninstall/manual installation of 0.1.2, then re-entering the workspace URL. Subsequent releases can upgrade in place. Server data is unaffected. For background push, install the PWA from Chrome as well. [Update/signing guide](ANDROID_UPDATES.md).
+Release APKs use the fixed `.preview` signing identity introduced in 0.1.2. The app checks GitHub daily at launch; check manually from the connection screen or **Settings → 应用更新**. Downloads and installation require user confirmation. Native UI/function updates arrive through APK updates. Backend/PWA updates still require deploying the server build.
+
+Temporary-signed 0.1.1 installs require one uninstall/manual replacement. Fixed-key 0.1.2 can be covered by the native APK. The native app pairs independently of the old browser session; server data and the existing browser session are preserved. Native reminders use opt-in system periodic checks. Passkeys require a compatible credential provider and domain association. [Native setup](NATIVE_ANDROID.md) · [Update/signing guide](ANDROID_UPDATES.md).
 
 ### Upgrading from RunOtter
 

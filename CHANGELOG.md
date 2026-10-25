@@ -4,7 +4,7 @@
 
 Replaced the browser-backed Android companion with native Android screens for pairing, artifacts, conversations, approvals, operations, Inbox and settings. The client talks directly to authenticated HTTPS JSON/SSE APIs; no WebView or Custom Tabs is used for the workspace. Sessions are encrypted with Android Keystore, documents use scoped native file access, and passkeys use Credential Manager with the fixed release app association. Native reminders use opt-in Android scheduled checks. Fixed signing and verified in-app APK updates are retained, including the Android 10 archive-signature compatibility fix.
 
-Validation in progress: backend/app verification, Android compile/lint/unit tests, native UI/API emulator flow and the real signed upgrade path. Physical-device passkeys and background scheduling remain separate device checks.
+Validation: 17 backend/application tests, 10 Android unit tests, Android compile/lint and the native HTTPS emulator flow passed. The emulator exercised pairing, artifacts, SSE, approval forwarding, Inbox, operations, themes, encrypted session/restart, scheduled notification and revocation. Signed publication and the final upgrade result are recorded separately in docs/VALIDATION.md. Physical-device passkeys and background timing remain device checks.
 
 ## 0.1.2 — Signed in-app updates
 

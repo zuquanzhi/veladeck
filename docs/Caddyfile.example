@@ -2,6 +2,13 @@
 # Keep the application bound to 127.0.0.1:8090.
 # Set PUBLIC_BASE_URL=https://your-host.example/your-private-prefix/dock.
 
+# Native passkeys require this public JSON at the domain root, without redirects or outer login:
+# handle /.well-known/assetlinks.json {
+#     reverse_proxy 127.0.0.1:8090
+# }
+# Keep native API access compatible with device-cookie authentication. A browser-only
+# outer sign-in gate must provide an API-compatible entry; the app rejects login-page redirects.
+
 # handle /your-private-prefix/dock* {
 #     # Insert your existing dsh-auth/forward_auth directive here.
 #     reverse_proxy 127.0.0.1:8090 {

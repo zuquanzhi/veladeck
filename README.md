@@ -53,11 +53,11 @@ Light when you want clarity. Dark when you want focus.
 </picture>
 
 <p align="center">
-  <img src="docs/screenshots/workspace-mobile.png" alt="Light mobile workspace" width="30%">
+  <img src="docs/screenshots/native-workspace-light.png" alt="Native Android light workspace" width="30%">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/workspace-mobile-dark.png" alt="Dark mobile workspace" width="30%">
+  <img src="docs/screenshots/native-workspace-dark.png" alt="Native Android dark workspace" width="30%">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/pairing.png" alt="Secure device pairing" width="30%">
+  <img src="docs/screenshots/native-pairing.png" alt="Native Android device pairing" width="30%">
 </p>
 
 <sub>Screenshots show the real application with clearly seeded demonstration content. They contain no personal reports or live account balances.</sub>
@@ -70,14 +70,14 @@ Light when you want clarity. Dark when you want focus.
 2. [Download the Android preview](https://github.com/zuquanzhi/veladeck/releases), or install the PWA from a compatible browser.
 3. Enter your workspace URL and pair your device with a one-time code.
 
-Android **8.0+**. The companion uses browser-backed tabs to retain the browser's TLS, cookies and passkey boundary. For background notifications, install the PWA as well.
+Android **8.0+**. The app uses native Android screens and talks directly to the HTTPS API. Pairing, artifacts, streamed conversations, approvals, Inbox, operations and settings stay inside the app. Device sessions are encrypted with Android Keystore. Optional background reminders use Android-scheduled checks; the system controls their timing. [Native client details →](docs/NATIVE_ANDROID.md)
 
 <details>
 <summary>App updates and preview signing</summary>
 
-From **0.1.2**, Release APKs use a fixed signing key. The app checks published GitHub previews once a day on launch. Use **Check app updates** on the connection screen, or **应用更新 / App updates** in the workspace browser menu, to check at any time. Downloads require confirmation, verify their checksum and signing identity, and open the Android installer. Android may first ask you to allow VelaDeck to install updates.
+From **0.1.2**, Release APKs use a fixed signing key. The app checks published GitHub previews once a day on launch. Use **Check app updates** on the connection screen, or **设置 → 应用更新 / Settings → App updates** in the native workspace, to check at any time. Downloads require confirmation, verify their checksum and signing identity, and open the Android installer. Android may first ask you to allow VelaDeck to install updates.
 
-**One-time migration:** 0.1.1 used a temporary development key. Uninstall that old companion and manually install 0.1.2 once; enter your workspace URL again. Your server data is unaffected. Subsequent releases can install over this version. The separate `.preview` package ID is retained; app-store distribution is not configured. See [update and signing details](docs/ANDROID_UPDATES.md).
+**One-time migration:** 0.1.1 used a temporary development key. Uninstall that old companion and manually install the latest native preview once; enter your workspace URL again. Your server data is unaffected. The native app needs its own one-time pairing, independent of the old browser session. Fixed-key 0.1.2 installs can be covered by the new APK. Subsequent releases can install over this version. The separate `.preview` package ID is retained; app-store distribution is not configured. See [update and signing details](docs/ANDROID_UPDATES.md).
 
 </details>
 
@@ -107,14 +107,15 @@ In another terminal, run `npm run pair`. For local verification, open [localhost
 
 ```mermaid
 flowchart LR
-    Phone["Android / PWA"] -->|HTTPS| Workspace["VelaDeck"]
+    Phone["Native Android"] -->|HTTPS JSON / SSE| Workspace["VelaDeck API"]
+    Web["Browser / PWA"] -->|HTTPS| Workspace
     Workspace --> Store[("SQLite + files")]
     Workspace --> Bridge["Agent bridge"]
     Bridge --> Agent["DSH process"]
     Tasks["Task scripts"] -->|Loopback ingest| Workspace
 ```
 
-One Node service. React on the front. SQLite underneath.
+Native Android Views on your phone. React in the browser. One Node API and SQLite underneath.
 
 The first adapter is a configurable DSH subprocess bridge. Other backends can be added at the adapter boundary; they are not presented as already connected. [Protocol and decisions →](docs/DECISIONS.md)
 
@@ -142,6 +143,7 @@ Verification covers strict TypeScript, ESLint, automated security/workflow tests
 | Read | Purpose |
 | :--- | :--- |
 | [Getting started](docs/GETTING_STARTED.md) | Install, configure, pair and self-host |
+| [Native Android](docs/NATIVE_ANDROID.md) | App architecture, secure pairing and device requirements |
 | [Validation](docs/VALIDATION.md) | What has actually been tested |
 | [Design decisions](docs/DECISIONS.md) | Scope, security choices and remaining work |
 | [Changelog](CHANGELOG.md) | Changes by milestone and release |

@@ -49,11 +49,11 @@ VelaDeck 把报告、对话、审批和运行信号放进一个个人工作台�
 </picture>
 
 <p align="center">
-  <img src="docs/screenshots/workspace-mobile.png" alt="手机浅色模式" width="30%">
+  <img src="docs/screenshots/native-workspace-light.png" alt="Android 原生浅色界面" width="30%">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/workspace-mobile-dark.png" alt="手机深色模式" width="30%">
+  <img src="docs/screenshots/native-workspace-dark.png" alt="Android 原生深色界面" width="30%">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/pairing.png" alt="设备安全配对" width="30%">
+  <img src="docs/screenshots/native-pairing.png" alt="原生设备安全配对" width="30%">
 </p>
 
 <sub>截图来自实际应用，使用明确标注的演示数据，不包含个人报告或真实账号余额。</sub>
@@ -66,14 +66,14 @@ VelaDeck 把报告、对话、审批和运行信号放进一个个人工作台�
 2. [下载 Android 预览版](https://github.com/zuquanzhi/veladeck/releases)，或通过兼容浏览器安装 PWA。
 3. 输入工作台地址，用服务器生成的一次性配对码连接设备。
 
-支持 **Android 8.0+**。APK 通过浏览器支持的窗口访问工作台，保留浏览器的 TLS、Cookie 与通行密钥边界。后台通知建议同时安装 PWA。
+支持 **Android 8.0+**。手机端使用 Android 原生界面，直接访问 HTTPS API；配对、产物、流式对话、审批、Inbox、运维与设置都在 App 内完成。设备会话由 Android Keystore 加密保存。本机后台提醒按系统周期检查，实际时机由 Android 安排。[原生客户端说明 →](docs/NATIVE_ANDROID.md)
 
 <details>
 <summary>应用内更新与签名说明</summary>
 
-从 **0.1.2** 开始，Release APK 使用固定签名。启动时每天自动检查一次已发布的 GitHub 预览版；也可在连接页点击 **检查应用更新**，或从工作台右上角菜单选择 **应用更新**。确认后下载安装包，校验摘要与签名，再交给 Android 系统确认安装。首次可能需要允许 VelaDeck 安装应用更新。
+从 **0.1.2** 开始，Release APK 使用固定签名。启动时每天自动检查一次已发布的 GitHub 预览版；也可在连接页点击 **检查应用更新**，或进入原生工作台 **设置 → 应用更新**。确认后下载安装包，校验摘要与签名，再交给 Android 系统确认安装。首次可能需要允许 VelaDeck 安装应用更新。
 
-**首次迁移需要手动安装一次：** 0.1.1 使用的是临时开发签名，需先卸载旧客户端，再安装 0.1.2 并重新填写工作台地址。服务器资料不受影响；此后可覆盖升级。保留独立的 `.preview` 包名，尚未配置应用商店分发。详见 [更新与签名机制](docs/ANDROID_UPDATES.md)。
+**首次迁移需要手动安装一次：** 0.1.1 使用的是临时开发签名，需先卸载旧客户端，再安装最新原生版并重新填写工作台地址。原生客户端需要独立配对一次，服务器资料不受影响；0.1.2 固定签名版可直接覆盖安装，此后继续通过 App 内升级。保留独立的 `.preview` 包名，尚未配置应用商店分发。详见 [更新与签名机制](docs/ANDROID_UPDATES.md)。
 
 </details>
 
@@ -103,14 +103,15 @@ npm start
 
 ```mermaid
 flowchart LR
-    Phone["Android / PWA"] -->|HTTPS| Workspace["VelaDeck"]
+    Phone["原生 Android"] -->|HTTPS JSON / SSE| Workspace["VelaDeck API"]
+    Web["浏览器 / PWA"] -->|HTTPS| Workspace
     Workspace --> Store[("SQLite + 文件")]
     Workspace --> Bridge["智能体适配层"]
     Bridge --> Agent["DSH 进程"]
     Tasks["任务脚本"] -->|本机上报| Workspace
 ```
 
-一个 Node 服务，React 前端，SQLite 存储。
+手机端为 Android 原生 Views，浏览器端为 React，共用 Node API 与 SQLite 存储。
 
 当前提供可配置的 DSH 子进程适配层。其他后端可以通过适配边界扩展；不会把尚未接通的后端标成可用。详见 [设计决策与范围](docs/DECISIONS.md)。
 
@@ -136,6 +137,7 @@ bash scripts/smoke.sh
 | 文档 | 内容 |
 | :--- | :--- |
 | [安装指南](docs/GETTING_STARTED.md) | 安装、环境、配对与自托管 |
+| [原生 Android](docs/NATIVE_ANDROID.md) | 原生界面、安全配对与设备要求 |
 | [验证记录](docs/VALIDATION.md) | 已实际检查的内容 |
 | [设计决策](docs/DECISIONS.md) | 安全选择、范围与剩余工作 |
 | [更新记录](CHANGELOG.md) | 里程碑与版本变化 |

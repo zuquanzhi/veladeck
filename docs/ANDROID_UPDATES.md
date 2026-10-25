@@ -2,9 +2,9 @@
 
 ## User flow
 
-The 0.1.2+ Release companion checks the public `zuquanzhi/veladeck` GitHub Releases API at launch, at most once per day after a successful check. Published previews are included; drafts, old versions, invalid version tags, other assets and incomplete assets are ignored. An unsuccessful network check is shown as unavailable, never as proof that the app is current. It does not prevent connecting to the workspace.
+The fixed-key Release app checks the public `zuquanzhi/veladeck` GitHub Releases API at launch, at most once per day after a successful check. Published previews are included; drafts, old versions, invalid version tags, other assets and incomplete assets are ignored. An unsuccessful network check is shown as unavailable, never as proof that the app is current. It does not prevent connecting to the workspace.
 
-Check at any time using **检查应用更新** on the native connection screen, or **应用更新** in the workspace browser's menu. The app shows the available version and release notes. Download begins only after confirmation, with progress and retry status. If the native screen is temporarily covered, the prompt waits until it is visible again.
+Check at any time using **检查应用更新** on the native connection screen, or **设置 → 应用更新** in the native workspace. The app shows the available version and release notes. Download begins only after confirmation, with progress and retry status. If the native screen is temporarily covered, the prompt waits until it is visible again.
 
 Before installation the app checks:
 
@@ -14,11 +14,11 @@ Before installation the app checks:
 
 The download stays in the app's private update cache. A non-exported FileProvider grants the system installer temporary read access to that directory only. Android 8+ can ask the user to allow VelaDeck as an installation source; returning from Settings continues the installation if permission was granted. Each installation still requires system confirmation. No silent installation is attempted. Failed downloads/verification preserve the installed app and can be retried.
 
-This updates the Android companion. Web/interface updates still require deploying the new server build, followed by refreshing the phone's workspace.
+This updates the native Android interface and client functionality. Backend and browser/PWA changes still require deploying the new server build. The Android app directly calls the API; it does not open the browser workspace.
 
 ## One-time migration from 0.1.1
 
-Versions through 0.1.1 used a CI-generated development key. Android cannot cover-install the new signing identity over that version. Uninstall the old VelaDeck companion, manually install the 0.1.2 Release APK, and enter the workspace URL again. Browser-side device pairing and backend files remain on their existing origin/server; no server data is deleted by uninstalling the companion. Future fixed-key Release APKs can update in place.
+Versions through 0.1.1 used a CI-generated development key. Android cannot cover-install the new signing identity over that version. Uninstall the old VelaDeck companion, manually install the latest native Release APK, and enter the workspace URL again. Browser-side device pairing and backend files remain on their existing origin/server; no server data is deleted by uninstalling the companion. Future fixed-key Release APKs can update in place.
 
 Release package: `io.github.zuquanzhi.veladeck.preview`. Development artifacts use `.dev`, disable in-app installation updates and never substitute for published releases.
 
@@ -41,3 +41,7 @@ The workflow restores the keystore only into the runner's temporary directory, b
 Pure-Java tests cover version ordering/no downgrade, release URL/digest/size restrictions, redirect trust, byte count/checksum failures and package/certificate identity. GitHub Actions compiles/lints Android and exercises the fixed signing configuration before publishing. Physical-device installer permissions and behavior are reported separately, not inferred from a successful build.
 
 References: [Android app updates](https://developer.android.com/google/play/app-updates), [installation-source permission](https://developer.android.com/reference/android/content/pm/PackageManager#canRequestPackageInstalls()), [FileProvider](https://developer.android.com/reference/androidx/core/content/FileProvider), [GitHub Releases API](https://docs.github.com/en/rest/releases/releases).
+
+## Android 10 certificate compatibility
+
+Android 10's APK archive parser collects certificates only when the legacy `GET_SIGNATURES` flag is requested. The native client requests that flag together with modern `SigningInfo`, and falls back to legacy signature metadata when necessary. Empty or mismatched certificates are still rejected. This fixes the false `APK_SIGNER` rejection observed during the 0.1.2 emulator upgrade test; fixed signing keys were not changed. [Android 10 framework source](https://android.googlesource.com/platform/frameworks/base/+/android-10.0.0_r1/core/java/android/content/pm/PackageManager.java).

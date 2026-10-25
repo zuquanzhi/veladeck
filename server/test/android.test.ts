@@ -11,7 +11,10 @@ test('native passkey association matches the fixed release certificate and publi
     const links = response.json();
     const pinned = readFileSync('android/release-certificate.sha256', 'utf8').trim();
     expect(links).toHaveLength(1);
-    expect(links[0].relation).toEqual(['delegate_permission/common.get_login_creds']);
+    expect(links[0].relation).toEqual([
+      'delegate_permission/common.handle_all_urls',
+      'delegate_permission/common.get_login_creds',
+    ]);
     expect(links[0].target.package_name).toBe('io.github.zuquanzhi.veladeck.preview');
     expect(links[0].target.sha256_cert_fingerprints[0].replaceAll(':', '').toLowerCase()).toBe(
       pinned,
