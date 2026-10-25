@@ -46,7 +46,7 @@ public final class NativeNotifications extends JobService {
         for (int i = events.length() - 1; i >= 0; i--) {
             JSONObject event = events.optJSONObject(i); if (event == null) continue;
             String id = event.optString("id"); latest.add(id);
-            if (seen.contains(id) || event.optLong("created_at") <= after || quiet || !preferences.optBoolean("notifications", true)
+            if (seen.contains(id) || event.optLong("created_at") <= after || (quiet && !event.optString("priority").equals("P0")) || !preferences.optBoolean("notifications", true)
                     || event.optString("priority").equals("P3") || (projects != null && !projects.optBoolean(event.optString("project"), true))) continue;
             boolean hide = preferences.optBoolean("lockscreen_hide", true);
             Intent intent = new Intent(this, MainActivity.class).putExtra("native_link", event.optString("deep_link"));

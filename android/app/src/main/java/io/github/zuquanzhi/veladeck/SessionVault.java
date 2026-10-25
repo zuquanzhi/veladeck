@@ -24,11 +24,12 @@ final class SessionVault {
         URI uri;
         try { uri = URI.create(value.trim().replaceAll("/+$", "")); }
         catch (IllegalArgumentException error) { throw new IllegalArgumentException("请输入完整的 HTTPS 工作台地址。"); }
-        if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null
                 || uri.getQuery() != null || uri.getFragment() != null || uri.getPort() == 0 || uri.getPort() > 65535
                 || uri.getPath().contains("..") || uri.getRawPath().contains("%"))
             throw new IllegalArgumentException("请输入 HTTPS 地址，不要包含账号、参数或片段。");
-        return uri.toString();
+        try { return new URI("https", null, uri.getHost().toLowerCase(java.util.Locale.ROOT), uri.getPort() == 443 ? -1 : uri.getPort(), uri.getPath(), null, null).toString(); }
+        catch (Exception error) { throw new IllegalArgumentException("请输入完整的 HTTPS 工作台地址。"); }
     }
 
     synchronized String server() { return preferences.getString("server", ""); }

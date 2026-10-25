@@ -345,10 +345,13 @@ public final class WorkspaceActivity extends NativeActivity {
         ui.actions(body, ui.button("返回对话", false, () -> show(1)), ui.button("停止任务", false, () -> action("/api/threads/" + id + "/cancel", "POST", NativeApi.object(), () -> toast("已请求停止任务"))));
         ui.gap(body, 15); LinearLayout messages = ui.column(); body.addView(messages, ui.fill());
         TextView status = ui.text("正在同步历史消息…", 11, ui.muted); body.addView(status); ui.gap(body, 16);
-        chatInput = ui.input("给智能体发送指令…", true); chatInput.setMinLines(2); chatInput.setMaxLines(7); body.addView(chatInput, ui.fill());
-        attachmentLabel = ui.text("", 11, ui.muted); body.addView(attachmentLabel); attachments = new JSONArray(); attachedArtifacts.clear();
+        LinearLayout chatPage = ui.column(); page.removeView(scroll); chatPage.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        LinearLayout composer = ui.column(); ui.pad(composer, 16, 10); composer.setBackground(ui.rounded(ui.surface, 20, true));
+        chatInput = ui.input("给智能体发送指令…", true); chatInput.setMinLines(2); chatInput.setMaxLines(5); composer.addView(chatInput, ui.fill());
+        attachmentLabel = ui.text("", 11, ui.muted); composer.addView(attachmentLabel); attachments = new JSONArray(); attachedArtifacts.clear();
         Button send = ui.button("发送", true, () -> {}); send.setEnabled(false);
-        ui.actions(body, ui.button("添加附件", false, () -> chooseAttachment()), ui.button("引用产物", false, this::chooseArtifacts), send);
+        ui.actions(composer, ui.button("添加附件", false, () -> chooseAttachment()), ui.button("引用产物", false, this::chooseArtifacts), send);
+        chatPage.addView(composer, ui.fill()); page.addView(chatPage, new FrameLayout.LayoutParams(-1, -1));
         Renderer renderer = new Renderer(messages, status, send);
         run(() -> api.list("/api/threads/" + id + "/messages"), history -> {
             for (int i = 0; i < history.length(); i++) { JSONObject event = history.optJSONObject(i); if (event != null) renderer.event(event); }
@@ -370,6 +373,7 @@ public final class WorkspaceActivity extends NativeActivity {
         Renderer(LinearLayout messages, TextView status, Button send) { this.messages = messages; this.status = status; this.send = send; }
         void event(JSONObject event) {
             long sequence = event.optLong("seq"); if (sequence <= lastSequence) return; lastSequence = sequence;
+            boolean follow = scroll.getScrollY() >= body.getHeight() - scroll.getHeight() - ui.dp(120);
             String type = event.optString("type"), value = event.optString("text");
             if (type.equals("token")) {
                 if (agent == null) { LinearLayout card = ui.card(messages); card.addView(ui.label("AGENT")); ui.gap(card, 8); agent = ui.text("", 15, ui.ink); agent.setTextIsSelectable(true); card.addView(agent, ui.fill()); text.setLength(0); }
@@ -386,6 +390,7 @@ public final class WorkspaceActivity extends NativeActivity {
                     if (type.equals("error")) { finished = true; status.setText("任务未完成"); send.setEnabled(true); }
                 }
             }
+            if (follow) scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
         }
     }
 
