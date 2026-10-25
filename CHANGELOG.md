@@ -43,3 +43,11 @@ Persisted approval requests, live-process binding, expiration and history, rejec
 Verification pending. Real agent approval protocol and physical passkeys remain integration checks.
 
 M5 validation: all tests including assertion bypass and expired decision rejection passed; production build and extended HTTP smoke passed.
+
+## M6 — Operations and cost accounting
+
+Actual host memory/disk/uptime and Linux service probes; explicit unavailable remote states; fixed systemd task allowlist with passkey confirmation; idempotent usage ledger with project totals and daily budget alerts; cached DeepSeek balance lookup when configured; cost history and notification timeline UI. No fabricated usage, balances or remote telemetry.
+
+Verification pending. Mail quota collection and a live Silicon Valley status adapter are not configured. Windows development reports local telemetry and explicitly disables systemd actions.
+
+M6 validation: all current tests including idempotent project accounting and daily budget alerts passed; production build and extended HTTP smoke passed. Remote quota sources remain unconnected.
