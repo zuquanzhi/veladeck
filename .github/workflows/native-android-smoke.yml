@@ -1,6 +1,8 @@
 name: Native Android smoke
 on:
   workflow_dispatch:
+  push:
+    branches: ['codex/native-android']
 permissions:
   contents: read
 jobs:

@@ -327,16 +327,13 @@ public final class MainActivity extends NativeActivity {
     }
 
     private void openWorkspace() {
-        String value = address.getText().toString().trim().replaceAll("/+$", "");
-        Uri uri = Uri.parse(value);
-        if (!"https".equals(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null || uri.getQuery() != null || uri.getFragment() != null) {
+        String value;
+        try { value = SessionVault.normalize(address.getText().toString()); }
+        catch (IllegalArgumentException exception) {
             error.setText("请输入完整 HTTPS 地址，不要包含账号密码、查询参数或片段。");
             return;
         }
         preferences.edit().putString("server", value).apply();
-        if (sharedText != null) {
-            uri = Uri.parse(value + "/share").buildUpon().appendQueryParameter("text", sharedText).build();
-        }
         try {
             InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (keyboard != null) keyboard.hideSoftInputFromWindow(address.getWindowToken(), 0);
