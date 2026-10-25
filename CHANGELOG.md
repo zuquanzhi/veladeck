@@ -4,7 +4,7 @@
 
 Renamed RunOtter to VelaDeck with the user-selected Current flowing-ribbon identity. Rebuilt the responsive workspace, light/dark themes, pairing and native Android connection screen. Added actual grid/list switching, keyboard search, shared vector icons, bilingual project READMEs and screenshots generated from synthetic fixtures. GitHub history is retained. Existing databases and browser sessions remain compatible on the same configured server origin.
 
-Local validation passed: strict TypeScript, ESLint, 16 workflow/security tests (including legacy database/session compatibility), production build, real HTTP smoke, and Chromium checks at 375/390 px mobile and 1440 px desktop in both themes. Android build/lint, signature checks and release asset publication are verified separately by GitHub Actions. Physical-device and live-service integration checks remain open.
+Local validation passed: strict TypeScript, ESLint, 16 workflow/security tests (including legacy database/session compatibility), production build, real HTTP smoke, and Chromium checks at 375/390 px mobile and 1440 px desktop in both themes. GitHub Actions application/Android checks and v0.1.1 publication passed; downloaded APK/server checksums match the release manifest (see docs/VALIDATION.md). Physical-device and live-service integration checks remain open.
 
 ## M0 — Foundation
 

@@ -33,4 +33,11 @@ GitHub validation succeeded for c72e992: both application verification and Andro
 - Documentation image/file links: passed.
 - 10,000-row local performance observation: list **55.7 ms**, search p95 **105.1 ms**, within the existing assertions.
 
-Android CI results and publication are recorded after the corresponding workflows finish. Native-device visual regression and the live-service checks above remain pending.
+Cloud validation completed:
+
+- [Source verification run 40174544966](https://github.com/zuquanzhi/veladeck/actions/runs/40174544966) and [main verification run 40174645306](https://github.com/zuquanzhi/veladeck/actions/runs/40174645306): application checks and Android assemble/lint succeeded for `b0aa236`.
+- [Release run 40174647642](https://github.com/zuquanzhi/veladeck/actions/runs/40174647642): web, Android and publish jobs succeeded. [v0.1.1](https://github.com/zuquanzhi/veladeck/releases/tag/v0.1.1) was published on 2026-10-25 at 07:56:50 UTC.
+- Downloaded all four release assets and checked their SHA-256 values against GitHub asset digests; APK/server values also match the attached checksum manifest. APK SHA-256: `40dd667c7abbeac22bbeb3f0b10196905166720d878b52fb0e68b761d603d212`.
+- APK ZIP integrity and self-hosted archive inventory checks passed. Signature/package metadata is attached as `APK-VERIFICATION.txt`.
+
+Native-device visual regression and the live-service checks above remain pending.
