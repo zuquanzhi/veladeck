@@ -12,17 +12,23 @@ export default defineConfig({
       filename: 'sw.js',
       injectRegister: false,
       manifest: {
-        name: 'RunOtter · 智能体工作台',
-        short_name: 'RunOtter',
+        name: 'VelaDeck · 智能体工作台',
+        short_name: 'VelaDeck',
         description: 'Your AI agents, in your pocket.',
         start_url: './',
         scope: './',
         display: 'standalone',
-        background_color: '#102925',
-        theme_color: '#102925',
+        background_color: '#f6f7f9',
+        theme_color: '#f6f7f9',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          {
+            src: 'icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
         share_target: {
           action: './share',

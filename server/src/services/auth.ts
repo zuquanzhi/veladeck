@@ -104,7 +104,7 @@ export class Auth {
   async registerOptions(d: Device) {
     const url = new URL(this.config.PUBLIC_BASE_URL);
     const o = await generateRegistrationOptions({
-      rpName: 'RunOtter',
+      rpName: 'VelaDeck',
       rpID: url.hostname,
       userID: new TextEncoder().encode(d.id),
       userName: d.name,

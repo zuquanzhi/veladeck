@@ -11,6 +11,6 @@
 
 # If public read-only shares are wanted, explicitly route only
 # /your-private-prefix/dock/s/* outside the outer authentication gate.
-# Share tokens, expiry, revocation and rate limiting remain enforced by RunOtter.
+# Share tokens, expiry, revocation and rate limiting remain enforced by VelaDeck.
 # Never expose /api/artifacts POST, /api/notify or /api/pair/code through a proxy:
 # forwarded ingress headers are rejected even with a valid internal token.

@@ -1,12 +1,17 @@
 import Database from 'better-sqlite3';
-import { mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 export type Value = string | number | bigint | Buffer | null;
+export function databasePath(directory: string) {
+  const current = join(directory, 'veladeck.db'),
+    legacy = join(directory, 'runotter.db');
+  return existsSync(current) ? current : existsSync(legacy) ? legacy : current;
+}
 export class Store {
   db: Database.Database;
   constructor(directory: string) {
     mkdirSync(directory, { recursive: true, mode: 0o750 });
-    this.db = new Database(join(directory, 'runotter.db'));
+    this.db = new Database(databasePath(directory));
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
     this.db.pragma('busy_timeout = 5000');

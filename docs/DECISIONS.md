@@ -1,8 +1,8 @@
-# Implementation decisions for 0.1.0
+# Implementation decisions
 
 The original design remains unchanged in SPEC.md. These decisions resolve contradictions and describe the first-preview scope.
 
-- Brand: RunOtter. Original Agent Dock names describe the source design. The distributable service uses `runotter.service`; database filename is `runotter.db`.
+- Brand: VelaDeck. Original Agent Dock names describe the source design. The current distributable service uses `veladeck.service`; new databases use `veladeck.db`, with legacy database compatibility described below.
 - Dangerous operations require a verified, action-bound, one-time passkey assertion. An unregistered device cannot substitute a dialog for cryptographic verification.
 - Reading progress is saved server-side; browser storage contains no device tokens.
 - Old files and their metadata are recorded separately before an idempotent artifact update, preserving meaningful diffs.
@@ -19,3 +19,5 @@ Remaining original-spec work includes cross-item lineage timelines, full CSV sor
 Security maintenance: the first-preview dependency audit required React Router 7 (React 18 compatible), Zod 4 and the patched Fastify static plugin. These replace vulnerable original version ranges while keeping the same libraries and architecture. SPEC.md is retained as the original design record.
 
 The patched runtime dependencies require Node 22. The supported runtime and CI baseline are therefore Node 22 LTS, replacing the original Node 20 target. No system Node installation is modified.
+
+2026-10-25 rebrand: the user selected VelaDeck and the abstract Current symbol. GitHub repository identity and release history are preserved through a repository rename. Existing `runotter.db` files and the `ad_device` authentication cookie remain compatible; a fresh data directory uses `veladeck.db`. The internal `runotter-base` HTML marker is retained to avoid breaking configured base paths. Existing deployments should retain their DATA_DIR and HTTPS origin; no live service or credential configuration is automatically changed.

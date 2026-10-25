@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import cookie from '@fastify/cookie';
 import staticFiles from '@fastify/static';
 import { existsSync, readFileSync } from 'node:fs';
@@ -23,6 +23,9 @@ import { CostService } from './services/costService.js';
 import { opsRoutes } from './routes/ops.js';
 import { Sharing } from './services/sharing.js';
 import { sharingRoutes } from './routes/sharing.js';
+const version = z
+  .object({ version: z.string() })
+  .parse(JSON.parse(readFileSync('package.json', 'utf8'))).version;
 export async function buildApp(config: Config, logging = false) {
   const base = new URL(config.PUBLIC_BASE_URL).pathname.replace(/\/$/, '');
   const app = Fastify({
@@ -60,7 +63,7 @@ export async function buildApp(config: Config, logging = false) {
       },
     });
   });
-  app.get('/api/health', () => ({ ok: true, version: '0.1.0', time: new Date().toISOString() }));
+  app.get('/api/health', () => ({ ok: true, version, time: new Date().toISOString() }));
   const store = new Store(config.DATA_DIR),
     auth = new Auth(store, config),
     settings = new Settings(store),
@@ -127,7 +130,7 @@ export async function buildApp(config: Config, logging = false) {
             type: 'digest',
             priority: 'P2',
             title: '每日工作台摘要已就绪',
-            body: '打开 RunOtter 查看产出与待办。',
+            body: '打开 VelaDeck 查看产出与待办。',
             deep_link: '/',
             idempotency_key: 'digest:' + day,
           })

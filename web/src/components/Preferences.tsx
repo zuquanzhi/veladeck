@@ -1,3 +1,4 @@
+import { Icon } from './Icon';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
@@ -34,7 +35,9 @@ export function Preferences() {
   return (
     <>
       <section>
-        <h2>通知与专注</h2>
+        <h2>
+          <Icon name="moon" size={17} /> 通知与专注
+        </h2>
         {error && <p className="error">{error}</p>}
         <label className="row">
           接收任务通知
@@ -82,10 +85,13 @@ export function Preferences() {
         <p className="muted small">Android Chrome 支持后台通知。iOS 请先添加到主屏幕。</p>
       </section>
       <section>
-        <h2>外观与保留</h2>
+        <h2>
+          <Icon name="settings" size={17} /> 外观与保留
+        </h2>
         <label>
           主题
           <select
+            aria-label="主题"
             value={p.theme}
             onChange={(e) => void set({ theme: e.target.value as Preferences['theme'] })}
           >

@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-const data = await mkdtemp(join(tmpdir(), 'runotter-smoke-'));
+const data = await mkdtemp(join(tmpdir(), 'veladeck-smoke-'));
 const port = 18090;
 const ingest = 'smoke-temporary-ingest-only';
 const child = spawn(process.execPath, ['--import', 'tsx', 'server/src/index.ts'], {

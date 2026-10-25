@@ -1,3 +1,5 @@
+import { PageHeading } from '../components/PageHeading';
+import { Icon } from '../components/Icon';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -43,10 +45,13 @@ export function Inbox() {
   return (
     <>
       <Link to="/" className="muted small">
-        ← 返回产物库
+        返回产物库
       </Link>
-      <h1>先收进来，稍后出发。</h1>
-      <p className="muted">从手机分享链接和灵感，一键交给智能体。</p>
+      <PageHeading
+        eyebrow="WORKSPACE / INBOX"
+        title="Inbox"
+        description="收集链接与灵感，准备好时再交给智能体。"
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -65,7 +70,10 @@ export function Inbox() {
           onChange={(e) => setText(e.target.value)}
           required
         />
-        <button>加入 Inbox</button>
+        <button>
+          <Icon name="plus" size={15} />
+          加入 Inbox
+        </button>
       </form>
       <div className="filters">
         {[
@@ -116,7 +124,7 @@ export function Inbox() {
                     .catch((e) => setError(String(e)))
                 }
               >
-                转成任务 →
+                转成任务
               </button>
             </div>
           ) : (
@@ -124,7 +132,7 @@ export function Inbox() {
           )}
         </section>
       ))}
-      {data.data?.length === 0 && <div className="empty">收件箱清空，心里也轻一点。</div>}
+      {data.data?.length === 0 && <div className="empty">Inbox 已清空。新的分享会出现在这里。</div>}
     </>
   );
 }

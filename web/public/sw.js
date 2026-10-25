@@ -1,6 +1,6 @@
 /* Only the public app shell is cached. API responses and personal files never enter Cache Storage. */
 const shell = self.__WB_MANIFEST;
-const cacheName = 'runotter-shell-v1';
+const cacheName = 'veladeck-shell-v1';
 self.addEventListener('install', (event) =>
   event.waitUntil(
     caches
@@ -18,7 +18,11 @@ self.addEventListener('activate', (event) =>
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.startsWith('runotter-shell-') && k !== cacheName)
+            .filter(
+              (k) =>
+                (k.startsWith('veladeck-shell-') || k.startsWith('runotter-shell-')) &&
+                k !== cacheName,
+            )
             .map((k) => caches.delete(k)),
         ),
       )
@@ -44,7 +48,7 @@ self.addEventListener('push', (event) => {
     return;
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title || 'RunOtter', {
+    self.registration.showNotification(payload.title || 'VelaDeck', {
       body: payload.body || '打开查看新进展',
       icon: 'icon-192.png',
       tag: payload.tag,

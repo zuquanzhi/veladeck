@@ -1,3 +1,5 @@
+import { PageHeading } from '../components/PageHeading';
+import { Icon } from '../components/Icon';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -53,9 +55,11 @@ export function Approvals() {
   }
   return (
     <>
-      <p className="eyebrow">YOU HAVE THE FINAL SAY</p>
-      <h1>关键一步，由你决定。</h1>
-      <p className="muted">所有决定都有记录，危险操作单独验证。</p>
+      <PageHeading
+        eyebrow="WORKSPACE / APPROVALS"
+        title="审批"
+        description="重要的决定，始终留在你手中。"
+      />
       <div className="filters">
         {[
           ['待处理', 'pending'],
@@ -80,7 +84,10 @@ export function Approvals() {
       {data.data?.map((a) => (
         <section key={a.id} className={a.risk === 'danger' ? 'danger' : ''}>
           <div className="row">
-            <span className="pill">{a.risk === 'danger' ? '⚠ 危险操作' : '常规操作'}</span>
+            <span className="pill">
+              <Icon name="shield" size={12} />
+              {a.risk === 'danger' ? '危险操作' : '常规操作'}
+            </span>
             <span className="muted small">{a.status}</span>
           </div>
           <h2>{a.title}</h2>
@@ -105,9 +112,11 @@ export function Approvals() {
       ))}
       {data.data?.length === 0 && (
         <div className="empty">
-          <span className="otter">✓</span>
-          <h2>暂时没有需要你决定的事。</h2>
-          <p>智能体可以继续安心工作。</p>
+          <div className="empty-icon">
+            <Icon name="shield" size={27} />
+          </div>
+          <h2>暂无待处理审批</h2>
+          <p>新的审批请求会自动出现在这里。</p>
         </div>
       )}
     </>

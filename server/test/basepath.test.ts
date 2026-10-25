@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 test('base-path requests are rewritten before routing, including API requests', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'runotter-base-'));
+  const directory = await mkdtemp(join(tmpdir(), 'veladeck-base-'));
   const app = await buildApp(
     loadConfig({ DATA_DIR: directory, PUBLIC_BASE_URL: 'https://host.example/private/dock' }),
   );

@@ -1,6 +1,6 @@
 # AGENTS.md — 给 Codex 的项目指令
 
-本仓库实现 **Agent Dock**：单用户、Android 优先的 PWA，用来接收云端智能体的推送与产物、与智能体对话并审批。
+本仓库实现 **VelaDeck**（原型名 Agent Dock，首版发布名 RunOtter）：单用户、Android 优先的 PWA，用来接收云端智能体的推送与产物、与智能体对话并审批。
 完整需求见 `SPEC.md`（唯一事实来源）。本文件是每次会话都必须遵守的工程约定。
 
 ## 你的工作方式

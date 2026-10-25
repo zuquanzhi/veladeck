@@ -1,3 +1,5 @@
+import { PageHeading } from '../components/PageHeading';
+import { Icon } from '../components/Icon';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,19 +40,24 @@ export function Threads() {
   }
   return (
     <>
-      <div className="row">
-        <h1>一起，把事做好。</h1>
-        <button onClick={() => void create()}>＋ 新对话</button>
-      </div>
-      <p className="muted">给你的智能体一句话，剩下的交给它。</p>
+      <PageHeading
+        eyebrow="WORKSPACE / CONVERSATIONS"
+        title="对话"
+        description="把任务交给智能体，随时接续进展。"
+      >
+        <button onClick={() => void create()}>
+          <Icon name="plus" size={15} />
+          新对话
+        </button>
+      </PageHeading>
       <input placeholder="搜索会话…" value={search} onChange={(e) => setSearch(e.target.value)} />
       {error && <div className="error">{error}</div>}
       {threads.data?.map((t) => (
-        <div key={t.id} className="card">
+        <div key={t.id} className="card thread-card">
           <Link to={'/threads/' + t.id}>
             <div className="row">
               <h2>
-                {t.pinned ? '⌖ ' : ''}
+                {t.pinned && <Icon name="star" size={13} />}
                 {t.title}
               </h2>
               <span className="muted small">{time(t.updated_at)}</span>
@@ -81,7 +88,9 @@ export function Threads() {
           </button>
         </div>
       ))}
-      {threads.data?.length === 0 && <div className="empty">还没有对话，先打个招呼吧。</div>}
+      {threads.data?.length === 0 && (
+        <div className="empty">暂无会话。发起一个任务，开始与智能体协作。</div>
+      )}
     </>
   );
 }
@@ -171,9 +180,13 @@ export function ThreadDetail() {
   return (
     <>
       <Link to="/threads" className="muted small">
-        ← 所有对话
+        返回对话
       </Link>
-      <h1>对话</h1>
+      <PageHeading
+        eyebrow="CONVERSATIONS / THREAD"
+        title="对话"
+        description="持久记录每一次交流与执行。"
+      />
       <div className="messages">
         {groups
           .filter((e) => !['done'].includes(e.type))
@@ -210,7 +223,7 @@ export function ThreadDetail() {
         />
         <div className="row">
           <label className="chip">
-            ＋ 附件
+            附件
             <input
               className="file-input"
               type="file"
@@ -248,7 +261,7 @@ export function ThreadDetail() {
               停止
             </button>
           ) : (
-            <button>发送 ↑</button>
+            <button>发送</button>
           )}
         </div>
       </form>

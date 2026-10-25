@@ -1,3 +1,5 @@
+import { PageHeading } from '../components/PageHeading';
+import { Icon } from '../components/Icon';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api } from '../lib/api';
@@ -77,8 +79,11 @@ export function Ops() {
   const c = cost.data;
   return (
     <>
-      <p className="eyebrow">A CALMER VIEW OF YOUR MACHINES</p>
-      <h1>一切，心中有数。</h1>
+      <PageHeading
+        eyebrow="WORKSPACE / OPERATIONS"
+        title="运行概览"
+        description="节点、任务与成本，一目了然。"
+      />
       {error && <div className="error">{error}</div>}
       {status.error && <div className="error">{String(status.error)}</div>}
       <div className="grid">
@@ -86,7 +91,10 @@ export function Ops() {
           <section key={n.node}>
             <div className="row">
               <h2>{n.node}</h2>
-              <span className="pill">{n.available ? '● 在线' : '未连接'}</span>
+              <span className="pill">
+                {n.available && <span className="status-dot" />}
+                {n.available ? '已连接' : '未连接'}
+              </span>
             </div>
             {n.available ? (
               <>
@@ -124,7 +132,9 @@ export function Ops() {
       {c && (
         <section>
           <div className="row">
-            <h2>今日成本与配额</h2>
+            <h2>
+              <Icon name="activity" size={17} /> 今日成本与配额
+            </h2>
             <span className="muted small">{c.day}</span>
           </div>
           <strong className="cost">

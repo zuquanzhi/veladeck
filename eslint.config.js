@@ -22,6 +22,8 @@ export default ts.config(
         console: 'readonly',
         setTimeout: 'readonly',
         fetch: 'readonly',
+        document: 'readonly',
+        innerWidth: 'readonly',
       },
     },
   },

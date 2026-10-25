@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 export async function fixture() {
-  const dir = await mkdtemp(join(tmpdir(), 'runotter-test-'));
+  const dir = await mkdtemp(join(tmpdir(), 'veladeck-test-'));
   const config = loadConfig({
     DATA_DIR: dir,
     INGEST_TOKEN: 'test-ingest-key-only',

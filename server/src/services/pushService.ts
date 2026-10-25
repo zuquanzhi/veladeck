@@ -96,7 +96,7 @@ export class PushService {
     const links = new URL(this.config.PUBLIC_BASE_URL);
     const base = links.pathname.replace(/\/$/, '');
     const payload = JSON.stringify({
-      title: prefs.lockscreen_hide ? 'RunOtter 有新进展' : n.title,
+      title: prefs.lockscreen_hide ? 'VelaDeck 有新进展' : n.title,
       body: prefs.lockscreen_hide ? '打开工作台查看详情' : n.body.slice(0, 120),
       tag: eventId,
       deep_link: base + n.deep_link,
@@ -150,7 +150,7 @@ export class PushService {
                 '--title',
                 n.title,
                 '--body',
-                'RunOtter 有新进展，请打开工作台查看。',
+                'VelaDeck 有新进展，请打开工作台查看。',
                 '--priority',
                 n.priority,
               ],

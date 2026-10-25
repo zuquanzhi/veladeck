@@ -24,3 +24,13 @@ These require an actual configured endpoint and devices. They must not be report
 Final local checks: 15 tests passed; production build and HTTP smoke passed; mobile Chrome browser QA passed for pairing, artifact detail and navigation with no page errors. Screenshots are synthetic fixtures in docs/screenshots. Runtime dependency audit after security upgrades reported zero vulnerabilities.
 
 GitHub validation succeeded for c72e992: both application verification and Android assembleDebug/lintDebug passed in https://github.com/zuquanzhi/runotter/actions/runs/40170211621 . The APK was produced as a workflow artifact. Release asset signing metadata and publication are handled by the subsequent tag-triggered Release run.
+
+## 0.1.1 visual refresh — local validation
+
+- `npm run verify`: strict TypeScript, ESLint and **16 tests passed**, including reopening a legacy `runotter.db` with its paired session and artifact metadata intact.
+- `npm run build` and `bash scripts/smoke.sh`: passed. The production manifest and UI use VelaDeck; app icons are exported from the selected Current vector, with a separate maskable export.
+- Chrome / temporary Playwright fixture: **375 and 390 px mobile, 1440 px desktop**, light/dark themes, one-time pairing, artifact detail, star filtering, list/grid switching, keyboard search, theme persistence, navigation and horizontal overflow checks passed; no browser page errors. Screenshots and README covers were regenerated from synthetic content.
+- Documentation image/file links: passed.
+- 10,000-row local performance observation: list **55.7 ms**, search p95 **105.1 ms**, within the existing assertions.
+
+Android CI results and publication are recorded after the corresponding workflows finish. Native-device visual regression and the live-service checks above remain pending.

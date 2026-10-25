@@ -6,7 +6,7 @@ import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 
 async function setup(script: string) {
-  const directory = await mkdtemp(join(tmpdir(), 'runotter-flow-'));
+  const directory = await mkdtemp(join(tmpdir(), 'veladeck-flow-'));
   const config = loadConfig({
     DATA_DIR: directory,
     INGEST_TOKEN: 'fixture-ingress-only',

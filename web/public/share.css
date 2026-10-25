@@ -1,43 +1,110 @@
 :root {
-  font-family: system-ui, sans-serif;
-  color: #183b35;
-  background: #f3f5f1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1b1d22;
+  background: #f6f7f9;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
 }
 main {
-  max-width: 850px;
-  margin: 40px auto;
-  padding: 24px;
+  max-width: 870px;
+  margin: 52px auto;
+  padding: 38px;
+  border: 1px solid #e6e8ed;
+  border-radius: 22px;
+  background: #fff;
+}
+.share-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 650;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+  margin: 0 0 35px;
+}
+.share-brand img {
+  width: 32px;
+  height: 32px;
+}
+.share-brand span {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #737984;
+  font-weight: 400;
 }
 h1 {
-  font-size: 28px;
+  font-size: 29px;
+  letter-spacing: -1px;
+  margin-bottom: 30px;
 }
 p {
-  line-height: 1.8;
+  line-height: 1.85;
 }
 pre {
   padding: 20px;
-  border: 1px solid #cad7cd;
+  border: 1px solid #e6e8ed;
   border-radius: 12px;
+  background: #f6f7f9;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font:
+    12px/1.9 'SFMono-Regular',
+    Consolas,
+    monospace;
 }
 iframe {
   width: 100%;
   height: 80vh;
   background: white;
   border: 0;
+  border-radius: 12px;
 }
 img {
   max-width: 100%;
 }
 table {
   border-collapse: collapse;
+  width: 100%;
 }
 td,
 th {
-  border: 1px solid #cad7cd;
-  padding: 8px;
+  border: 1px solid #e6e8ed;
+  padding: 10px;
 }
 a {
-  color: #176c54;
+  color: #006bd6;
+}
+@media (max-width: 600px) {
+  main {
+    margin: 18px 12px;
+    padding: 24px 20px;
+    border-radius: 17px;
+  }
+  h1 {
+    font-size: 25px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #edf0f5;
+    background: #0d1015;
+  }
+  main {
+    background: #151920;
+    border-color: #282e39;
+  }
+  pre {
+    background: #1d222b;
+    border-color: #282e39;
+  }
+  td,
+  th {
+    border-color: #282e39;
+  }
+  a {
+    color: #62aaff;
+  }
 }

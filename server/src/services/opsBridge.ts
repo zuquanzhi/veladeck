@@ -31,7 +31,7 @@ export class OpsBridge {
     let services: Record<string, string> = {};
     if (platform() === 'linux') {
       const entries = await Promise.all(
-        ['runotter.service', 'caddy.service', 'dsh.service'].map(async (name) => {
+        ['veladeck.service', 'caddy.service', 'dsh.service'].map(async (name) => {
           try {
             const r = await execute('systemctl', ['is-active', name], { timeout: 3000 });
             return [name, r.stdout.trim()];

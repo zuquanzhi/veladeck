@@ -22,12 +22,12 @@ jobs:
       - name: Package self-hosted server
         run: |
           mkdir release
-          cp -R dist sql scripts server package.json package-lock.json .env.example README.md LICENSE docs release/
-          tar -czf runotter-server.tar.gz -C release .
+          cp -R dist sql scripts server package.json package-lock.json .env.example README.md README.zh-CN.md CONTRIBUTING.md SECURITY.md LICENSE AGENTS.md SPEC.md PROMPTS.md docs release/
+          tar -czf veladeck-server.tar.gz -C release .
       - uses: actions/upload-artifact@v4
         with:
           name: server
-          path: runotter-server.tar.gz
+          path: veladeck-server.tar.gz
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -45,9 +45,12 @@ jobs:
       - name: Verify installable APK
         run: |
           mkdir apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk apk/RunOtter-0.1.0-preview.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose apk/RunOtter-0.1.0-preview.apk > apk/APK-VERIFICATION.txt
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging apk/RunOtter-0.1.0-preview.apk >> apk/APK-VERIFICATION.txt
+          VERSION=$(node -p "require('./package.json').version")
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          APK="apk/VelaDeck-${VERSION}-preview.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK" > apk/APK-VERIFICATION.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" >> apk/APK-VERIFICATION.txt
       - uses: actions/upload-artifact@v4
         with:
           name: android
@@ -71,4 +74,4 @@ jobs:
         run: |
           cd release-assets
           sha256sum *.apk *.tar.gz > SHA256SUMS.txt
-          gh release create "$TAG" ./* --verify-tag --prerelease --title "RunOtter $TAG · First Preview" --notes-file ../docs/RELEASE_NOTES.md
+          gh release create "$TAG" ./* --verify-tag --prerelease --title "VelaDeck $TAG · Visual Refresh" --notes-file ../docs/RELEASE_NOTES.md

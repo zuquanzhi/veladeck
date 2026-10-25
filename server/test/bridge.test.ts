@@ -6,7 +6,7 @@ import { Store } from '../src/db/client.js';
 import { loadConfig } from '../src/config.js';
 import { AgentBridge } from '../src/services/agentBridge.js';
 test('server event sequence persists independently of disconnected clients', async () => {
-  const directory = await mkdtemp(join(tmpdir(), 'runotter-bridge-'));
+  const directory = await mkdtemp(join(tmpdir(), 'veladeck-bridge-'));
   const store = new Store(directory);
   store.tables(['audit']);
   const bridge = new AgentBridge(

@@ -85,9 +85,11 @@ export class Sharing {
     return (
       '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' +
       escape(a.title) +
-      ' · RunOtter</title><link rel="stylesheet" href="' +
+      ' · VelaDeck</title><link rel="stylesheet" href="' +
       escape(this.config.PUBLIC_BASE_URL.replace(/\/$/, '') + '/share.css') +
-      '"></head><body><main><p>🦦 RunOtter · 只读分享</p><h1>' +
+      '"></head><body><main><p class="share-brand"><img alt="" src="' +
+      escape(this.config.PUBLIC_BASE_URL.replace(/\/$/, '') + '/brand/mark.svg') +
+      '">VelaDeck<span>只读分享</span></p><h1>' +
       escape(a.title) +
       '</h1>' +
       content +

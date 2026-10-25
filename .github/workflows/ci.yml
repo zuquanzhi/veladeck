@@ -1,7 +1,7 @@
 name: Verify
 on:
   push:
-    branches: [main, codex/m8-distribution]
+    branches: [main, 'codex/**']
   pull_request:
 permissions:
   contents: read

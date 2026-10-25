@@ -1,38 +1,56 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
-export function Digest() {
-  const data = useQuery({
+import { Icon } from './Icon';
+export function Digest({ total }: { total?: number }) {
+  const { data } = useQuery({
     queryKey: ['digest'],
     queryFn: () =>
       api<{ day: string; artifacts: number; pending_approvals: number; inbox: number }>(
         '/api/digest/today',
       ),
   });
-  if (!data.data) return null;
-  const d = data.data;
+  const stats = [
+    {
+      label: '产物总数',
+      value: total,
+      icon: 'layers',
+      note: data ? `近 24 小时 +${data.artifacts}` : '等待同步',
+      path: '/',
+    },
+    {
+      label: '等待审批',
+      value: data?.pending_approvals,
+      icon: 'shield',
+      note: '每个重要决定，由你掌握',
+      path: '/approvals',
+    },
+    {
+      label: 'Inbox',
+      value: data?.inbox,
+      icon: 'inbox',
+      note: '灵感与链接，随时收集',
+      path: '/inbox',
+    },
+  ];
   return (
-    <>
-      <div className="digest">
-        <span className="eyebrow">今日一瞥 · {d.day}</span>
-        <div className="row">
-          <span>
-            近 24 小时 <b>{d.artifacts}</b> 份产出
+    <div className="stats-grid">
+      {stats.map((s, i) => (
+        <Link className={'stat-card ' + (i === 0 ? 'stat-primary' : '')} to={s.path} key={s.label}>
+          <div className="stat-top">
+            <span>{s.label}</span>
+            <Icon name={s.icon} size={18} />
+          </div>
+          <div className="stat-value">
+            {s.value ?? '—'}
+            <Icon name="external" size={16} />
+          </div>
+          <span className="stat-note">
+            {i === 0 && <span className="status-dot" />}
+            {s.note}
           </span>
-          <Link to="/approvals">
-            <b>{d.pending_approvals}</b> 项待批
-          </Link>
-          <Link to="/inbox">
-            <b>{d.inbox}</b> 条待处理
-          </Link>
-        </div>
-      </div>
-      <div className="quick-grid">
-        <Link to="/threads">◌ 派一个任务</Link>
-        <Link to="/approvals">✓ 处理审批</Link>
-        <Link to="/ops">▥ 查看运行状态</Link>
-        <Link to="/inbox">↗ 收集灵感</Link>
-      </div>
-    </>
+        </Link>
+      ))}
+    </div>
   );
 }

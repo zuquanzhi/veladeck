@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,6 +7,7 @@ import { api, base } from '../lib/api';
 import { time } from '../lib/time';
 import { stepUp } from '../lib/passkey';
 import { Digest } from '../components/Digest';
+import { Icon } from '../components/Icon';
 export interface Artifact {
   id: string;
   title: string;
@@ -25,7 +26,12 @@ export function Artifacts() {
   const [search, setSearch] = useState(''),
     [query, setQuery] = useState(''),
     [filter, setFilter] = useState(''),
-    [project, setProject] = useState('');
+    [project, setProject] = useState(''),
+    [view, setView] = useState('grid'),
+    [error, setError] = useState(''),
+    [creating, setCreating] = useState(false);
+  const navigate = useNavigate(),
+    q = useQueryClient();
   useEffect(() => {
     const timer = setTimeout(() => setQuery(search), 300);
     return () => clearTimeout(timer);
@@ -39,89 +45,175 @@ export function Artifacts() {
       ),
     getNextPageParam: (last) => (last.page * last.size < last.total ? last.page + 1 : undefined),
   });
+  async function create() {
+    setCreating(true);
+    try {
+      const thread = await api<{ id: string }>('/api/threads', 'POST', { title: '新的对话' });
+      await q.invalidateQueries({ queryKey: ['threads'] });
+      navigate('/threads/' + thread.id);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setCreating(false);
+    }
+  }
+  const total = data.data?.pages[0].total;
+  const kinds: Record<string, string> = {
+    markdown: 'file',
+    html: 'code',
+    csv: 'table',
+    image: 'image',
+    json: 'code',
+    log: 'terminal',
+    diff: 'code',
+    pdf: 'file',
+  };
+  const filters = [
+    ['全部文件', '', 'layers'],
+    ['星标', '&starred=true', 'star'],
+    ['稍后读', '&read_later=true', 'clock'],
+    ['报告', '&kind=markdown', 'file'],
+    ['数据', '&kind=csv', 'table'],
+  ];
   return (
     <>
-      <div className="row">
+      <div className="page-heading">
         <div>
-          <p className="eyebrow">YOUR AGENTS HAVE BEEN BUSY</p>
-          <h1>接住每一次进展。</h1>
+          <p className="eyebrow">WORKSPACE / OVERVIEW</p>
+          <h1>
+            工作台<span className="heading-dot">.</span>
+          </h1>
+          <p className="muted">从一条指令，到每一次完成。</p>
         </div>
-        <Link className="pill" to="/inbox">
-          Inbox ↗
-        </Link>
+        <div className="page-actions">
+          <Link to="/inbox" className="button secondary">
+            <Icon name="inbox" size={15} />
+            Inbox
+          </Link>
+          <button onClick={() => void create()} disabled={creating}>
+            <Icon name="plus" size={15} />
+            <span>{creating ? '正在创建…' : '新对话'}</span>
+          </button>
+        </div>
       </div>
-      <Digest />
-      <div className="hero">
-        <span>产物库</span>
-        <strong>{data.data?.pages[0].total ?? '—'}</strong>
-        <p>报告、灵感和成果，都在这里。</p>
+      <Digest total={total} />
+      <div className="library-toolbar">
+        <div className="search-field">
+          <Icon name="search" size={17} />
+          <input
+            data-global-search
+            aria-label="搜索产物"
+            placeholder="搜索产物、项目或关键词…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <kbd>⌘ K</kbd>
+        </div>
+        <div className="project-field">
+          <input
+            aria-label="项目筛选"
+            placeholder="按项目筛选"
+            value={project}
+            onChange={(e) => setProject(e.target.value)}
+          />
+        </div>
+        <div className="view-toggle">
+          <button
+            className={'icon-button ' + (view === 'grid' ? 'active' : '')}
+            aria-label="卡片视图"
+            aria-pressed={view === 'grid'}
+            onClick={() => setView('grid')}
+          >
+            <Icon name="layers" size={16} />
+          </button>
+          <button
+            className={'icon-button ' + (view === 'list' ? 'active' : '')}
+            aria-label="列表视图"
+            aria-pressed={view === 'list'}
+            onClick={() => setView('list')}
+          >
+            <Icon name="file" size={16} />
+          </button>
+        </div>
       </div>
-      <input
-        aria-label="搜索产物"
-        placeholder="⌕ 搜索产物、报告、关键词…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
       <div className="filters">
-        {[
-          ['全部', ''],
-          ['星标', '&starred=true'],
-          ['稍后读', '&read_later=true'],
-          ['报告', '&kind=markdown'],
-          ['网页', '&kind=html'],
-          ['数据', '&kind=csv'],
-        ].map(([name, value]) => (
+        {filters.map(([name, value, icon]) => (
           <button
             key={name}
             className={'chip ' + (filter === value ? 'selected' : '')}
             onClick={() => setFilter(value)}
           >
+            <Icon name={icon} size={14} />
             {name}
           </button>
         ))}
-        <button className="chip" onClick={() => void data.refetch()}>
-          ↻ 刷新
-        </button>
       </div>
-      <input
-        className="project-filter"
-        placeholder="按项目筛选"
-        value={project}
-        onChange={(e) => setProject(e.target.value)}
-      />
-      {data.error && <div className="error">{String(data.error)}</div>}
-      {data.data?.pages
-        .flatMap((p) => p.items)
-        .map((a) => (
-          <Link to={'/artifacts/' + a.id} className="artifact card" key={a.id}>
-            <div className="row">
-              <span className="pill">{a.project}</span>
-              <span className="muted small">
-                {a.starred ? '★ · ' : ''}
-                {time(a.updated_at)}
-              </span>
-            </div>
-            <h2>{a.title}</h2>
-            <p className="muted">{a.summary || '查看产物详情'}</p>
-            <div className="row small">
-              <span>
-                {a.kind.toUpperCase()} · {(a.bytes / 1024).toFixed(1)} KB · v{a.version}
-              </span>
-              <span>打开 ↗</span>
-            </div>
-          </Link>
-        ))}
+      <div className="library-heading">
+        <h2>最近产物</h2>
+        <div className="library-sort">
+          <span>
+            {total === undefined ? 'SYNCING' : String(total).padStart(2, '0') + ' FILES'} / LATEST
+            FIRST
+          </span>
+          <button className="icon-button" aria-label="刷新产物" onClick={() => void data.refetch()}>
+            <Icon name="refresh" size={14} />
+          </button>
+        </div>
+      </div>
+      {(data.error || error) && <div className="error">{error || String(data.error)}</div>}
+      <div className={'artifact-grid ' + (view === 'list' ? 'list-view' : '')}>
+        {data.data?.pages
+          .flatMap((p) => p.items)
+          .map((a) => (
+            <Link to={'/artifacts/' + a.id} className="artifact" key={a.id}>
+              <div className="artifact-head">
+                <span className={'artifact-type kind-' + a.kind}>
+                  <Icon name={kinds[a.kind] ?? 'file'} size={21} />
+                </span>
+                <div className="artifact-badges">
+                  {!!a.starred && <Icon name="star" size={13} />}
+                  <span className="artifact-version">v{a.version}</span>
+                </div>
+              </div>
+              <h2>{a.title}</h2>
+              <p className="artifact-summary">{a.summary || '查看产物详情与内容。'}</p>
+              <div className="artifact-metadata">
+                <span>{a.kind.toUpperCase()}</span>
+                <i>/</i>
+                <span>{a.bytes < 1024 ? a.bytes + ' B' : (a.bytes / 1024).toFixed(1) + ' KB'}</span>
+                <i>/</i>
+                <span>{a.id.slice(0, 7)}</span>
+              </div>
+              <div className="artifact-footer">
+                <span className="artifact-project">
+                  <Icon name="folder" size={12} />
+                  {a.project}
+                </span>
+                <time>{time(a.updated_at)}</time>
+                <Icon name="external" size={13} />
+              </div>
+            </Link>
+          ))}
+      </div>
       {!data.isPending && !data.data?.pages[0].items.length && (
         <div className="empty">
-          <span className="otter">🦦</span>
-          <h2>好成果，值得等一等。</h2>
-          <p>智能体上传第一份产物后，就会出现在这里。</p>
+          <div className="empty-icon">
+            <Icon name="layers" size={26} />
+          </div>
+          <h2>等待第一份产物</h2>
+          <p>报告、网页和数据，会在这里有序汇集。</p>
         </div>
       )}
-      {data.hasNextPage && <button onClick={() => void data.fetchNextPage()}>加载更多</button>}
+      {data.hasNextPage && (
+        <button className="ghost load-more" onClick={() => void data.fetchNextPage()}>
+          加载更多
+          <Icon name="chevron" size={15} />
+        </button>
+      )}
     </>
   );
 }
+
 function csvRows(text: string) {
   const rows: string[][] = [];
   let row: string[] = [],
@@ -288,7 +380,7 @@ export function ArtifactDetail() {
   return (
     <>
       <Link to="/" className="muted small">
-        ← 返回产物库
+        返回产物库
       </Link>
       <h1>{a.title}</h1>
       <p className="muted">
@@ -296,16 +388,18 @@ export function ArtifactDetail() {
       </p>
       <div className="filters">
         <button className="chip" onClick={() => void action('star', { value: !a.starred })}>
-          {a.starred ? '★ 已星标' : '☆ 星标'}
+          <Icon name="star" size={14} />
+          {a.starred ? '已星标' : '星标'}
         </button>
         <button
           className="chip"
           onClick={() => void action('read-later', { value: !a.read_later })}
         >
-          {a.read_later ? '✓ 稍后读' : '＋ 稍后读'}
+          <Icon name="clock" size={14} />
+          {a.read_later ? '已加入稍后读' : '稍后读'}
         </button>
         <a className="chip" href={base + '/api/artifacts/' + id + '/download'}>
-          ↓ 下载
+          下载
         </a>
         <button
           className="chip"
@@ -315,7 +409,7 @@ export function ArtifactDetail() {
               .catch((e) => setError(String(e)))
           }
         >
-          ↗ 分享
+          分享
         </button>
         {a.version > 1 && (
           <button

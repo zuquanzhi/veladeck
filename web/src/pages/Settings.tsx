@@ -1,3 +1,5 @@
+import { PageHeading } from '../components/PageHeading';
+import { Icon } from '../components/Icon';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { startRegistration } from '@simplewebauthn/browser';
@@ -28,12 +30,17 @@ export function Settings({ session }: { session: Session }) {
   }
   return (
     <>
-      <h1>设置</h1>
-      <p className="muted">让工作台适合你的节奏。</p>
+      <PageHeading
+        eyebrow="WORKSPACE / PREFERENCES"
+        title="设置"
+        description="为你的工作方式，留出一点个性。"
+      />
       {error && <div className="error">{error}</div>}
       <Preferences />
       <section>
-        <h2>安全与设备</h2>
+        <h2>
+          <Icon name="key" size={17} /> 安全与设备
+        </h2>
         <p>当前设备 · {session.name}</p>
         <button onClick={() => void passkey()}>
           {session.passkey ? '重新注册通行密钥' : '注册通行密钥'}

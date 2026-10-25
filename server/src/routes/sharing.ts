@@ -77,7 +77,7 @@ export function sharingRoutes(app: FastifyInstance, auth: Auth, sharing: Sharing
   app.get('/api/export/artifacts', async (req, reply) => {
     auth.device(req);
     return reply
-      .header('Content-Disposition', 'attachment; filename="runotter-artifacts.json"')
+      .header('Content-Disposition', 'attachment; filename="veladeck-artifacts.json"')
       .send(
         auth.store.all(
           'SELECT id,project,kind,title,summary,bytes,sha256,version,lineage_key,tags,starred,read_later,retain_until,created_at,updated_at FROM artifacts',

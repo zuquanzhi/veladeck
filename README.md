@@ -1,66 +1,158 @@
-# 🦦 RunOtter
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/hero-dark.png">
+    <img src="docs/brand/hero-light.png" alt="VelaDeck — Your agents. Within reach. A desktop and mobile preview of the workspace." width="100%">
+  </picture>
+</p>
 
-**Your AI agents, in your pocket.**
+<p align="center">
+  <strong>A calmer place for your AI agents.</strong><br>
+  Review the output. Continue the conversation. Keep the final say.
+</p>
 
-A self-hosted, mobile-first workspace for agent artifacts, conversations, approvals, notifications, and operations. 单用户智能体手机工作台。
+<p align="center">
+  <a href="https://github.com/zuquanzhi/veladeck/actions/workflows/ci.yml"><img src="https://github.com/zuquanzhi/veladeck/actions/workflows/ci.yml/badge.svg?branch=main" alt="Build and verification"></a>
+  <a href="https://github.com/zuquanzhi/veladeck/releases"><img src="https://img.shields.io/github/v/release/zuquanzhi/veladeck?include_prereleases&label=preview&color=087cfa" alt="Latest preview"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-737984" alt="MIT license"></a>
+  <a href="package.json"><img src="https://img.shields.io/badge/Node.js-22%2B-737984" alt="Node.js 22 or newer"></a>
+</p>
 
-**0.1.0 is a first preview.** The core workflows are implemented; live infrastructure and physical-device integration checks remain open. [Validation](docs/VALIDATION.md) · [Design decisions and remaining scope](docs/DECISIONS.md).
+<p align="center">
+  <a href="#why-veladeck">Why VelaDeck</a> ·
+  <a href="#a-closer-look">Screenshots</a> ·
+  <a href="#get-started">Get started</a> ·
+  <a href="https://github.com/zuquanzhi/veladeck/releases">Download APK</a> ·
+  <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-## Android APK
+---
 
-Download `RunOtter-0.1.0-preview.apk` from [Releases](https://github.com/zuquanzhi/runotter/releases). Android 8.0+ and a compatible browser are required. Enter your self-hosted HTTPS workspace URL, then enter a pairing code generated on the server. The APK is a browser-backed companion with an Android share target; it does not provide a hosted server or run an LLM on your phone.
+Your agents can work for hours. Keeping up should take moments.
 
-The preview uses a development certificate and separate package ID. A build from another runner may need the previous preview uninstalled. Production signing is not configured. For background push, install the PWA from Chrome as well.
+VelaDeck brings their reports, conversations, approval requests and operational signals into one personal workspace. Open it on your phone, pick up where you left off, and step in when a decision needs you.
 
-## Development
+**Self-hosted. Mobile first. Open source.** A small service, a SQLite database and a workspace that stays out of your way.
 
-Requires Node.js 22+ (Node 22 LTS is used in CI).
+> **Preview software.** Bring your own HTTPS server and configured agent backend. The Android app is a client, not a hosted AI service. See [validation and integration status](docs/VALIDATION.md).
+
+## Why VelaDeck
+
+| Less switching | More control |
+| :--- | :--- |
+| **A home for the output.** Search reports, preview files, star what matters and compare saved revisions. | **Decisions stay yours.** Review requests with context; dangerous approvals require a scoped passkey assertion. |
+| **Conversations that continue.** Stream agent events, stop a task and replay persisted events after reconnecting. | **Your own infrastructure.** Loopback service, device pairing, SQLite and files. No hosted account required. |
+| **An Inbox for loose ends.** Save a link or thought, then turn it into an agent task when ready. | **A clearer operational picture.** Host telemetry, reported usage and budget signals, with unavailable sources shown honestly. |
+
+## A closer look
+
+Light when you want clarity. Dark when you want focus.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/workspace-desktop-dark.png">
+  <img src="docs/screenshots/workspace-desktop.png" alt="VelaDeck desktop workspace with sidebar, live summary and a searchable artifact library" width="100%">
+</picture>
+
+<p align="center">
+  <img src="docs/screenshots/workspace-mobile.png" alt="Light mobile workspace" width="30%">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/workspace-mobile-dark.png" alt="Dark mobile workspace" width="30%">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/pairing.png" alt="Secure device pairing" width="30%">
+</p>
+
+<sub>Screenshots show the real application with clearly seeded demonstration content. They contain no personal reports or live account balances.</sub>
+
+## Get started
+
+### On your phone
+
+1. Deploy VelaDeck behind your authenticated HTTPS reverse proxy.
+2. [Download the Android preview](https://github.com/zuquanzhi/veladeck/releases), or install the PWA from a compatible browser.
+3. Enter your workspace URL and pair your device with a one-time code.
+
+Android **8.0+**. The companion uses browser-backed tabs to retain the browser's TLS, cookies and passkey boundary. For background notifications, install the PWA as well.
+
+<details>
+<summary>About preview APK signing</summary>
+
+The APK currently uses a development certificate and a separate `.preview` package ID. Builds from different CI runners can require uninstalling the previous preview. Production signing and app-store distribution are not configured.
+
+</details>
+
+### On your server
+
+Requires **Node.js 22+**. The supported deployment target is Ubuntu with an existing HTTPS reverse proxy.
 
 ```sh
+git clone https://github.com/zuquanzhi/veladeck.git
+cd veladeck
 npm ci
 cp .env.example .env
-# Set INGEST_TOKEN to a locally generated random secret; never commit it.
-npm run dev
-npm run verify
-bash scripts/smoke.sh
+```
+
+Set a private, randomly generated `INGEST_TOKEN` in `.env`, then:
+
+```sh
 npm run build
 npm start
 ```
 
-Backend: `127.0.0.1:8090`. Frontend dev: `127.0.0.1:5173`. Production must use HTTPS through your existing authenticated reverse proxy; no public application port is opened.
+In another terminal, run `npm run pair`. For local verification, open [localhost:8090](http://localhost:8090); phone access needs your HTTPS endpoint.
 
-For pairing in development, serve the built app at `http://localhost:8090` (`npm run build && npm start`). Secure cookies must not be disabled; the separate HTTP Vite port is for UI development.
+[Installation, environment and deployment guide →](docs/GETTING_STARTED.md)
 
-Generate an ingestion secret locally with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`, write it only to your private `.env`, then run `npm run pair` while the backend is running. Pairing codes expire after five minutes. Register a passkey in Settings before approving dangerous actions.
+## How it fits
 
-`DSH_CMD` is an executable path; `DSH_ARGS` is a JSON array of separate arguments. User prompts are written to stdin without a shell. The adapter accepts newline-delimited JSON events (`token`, `tool_call`, `tool_result`, `approval_required`, `done`, `error`) and plain stdout lines as text. Approval responses are written as `{type:"approval_decision",approval_id,decision}`. Configure this protocol against your real CLI before relying on agent execution.
+```mermaid
+flowchart LR
+    Phone["Android / PWA"] -->|HTTPS| Workspace["VelaDeck"]
+    Workspace --> Store[("SQLite + files")]
+    Workspace --> Bridge["Agent bridge"]
+    Bridge --> Agent["DSH process"]
+    Tasks["Task scripts"] -->|Loopback ingest| Workspace
+```
 
-## Self-host and release
+One Node service. React on the front. SQLite underneath.
 
-Unpack the server archive, run `npm ci`, configure the private environment and `npm start`. Source installation may use `scripts/deploy.sh` on Ubuntu after reviewing it and creating `/etc/runotter/env`. It configures systemd only; it does not change Caddy, SSH, Docker, accounts or networking. See [Caddy example](docs/Caddyfile.example). Backups: `DATA_DIR=/var/lib/runotter bash scripts/backup-hook.sh /private/encrypted-backup-destination`.
+The first adapter is a configurable DSH subprocess bridge. Other backends can be added at the adapter boundary; they are not presented as already connected. [Protocol and decisions →](docs/DECISIONS.md)
 
-GitHub Actions runs verification on pushes/PRs. Tags matching `v*` build, lint and verify the Android APK, package the server, compute SHA-256 checksums and create a preview Release. Download assets only after the workflow succeeds.
+## Built with a little restraint
 
-## Artifact and usage ingestion
+- System typography, fine borders, soft depth and a small electric-blue accent.
+- One editable vector identity across web, PWA, Android and the repository.
+- Light, dark and system themes. Keyboard search with `⌘/Ctrl K`.
+- Responsive layouts, visible focus states and reduced-motion support.
+- No UI framework, ORM or application state library added for the visual layer.
 
-Internal endpoints accept the ingestion bearer secret from loopback only. Use `POST /api/artifacts` with `project`, `kind`, `title`, `file` (UTF-8 text, or base64 with `encoding:"base64"`) and `idempotency_key`. Reusing the key preserves the old version and updates the existing item. File limit: 20 MB.
+[Visual identity and assets →](docs/brand/README.md)
 
-`POST /api/cost/usage` accepts `idempotency_key`, `project`, `input_tokens`, `output_tokens`, optional `cache_hit` and an explicitly supplied `cost_cny`. Only supplied accounting is displayed; no service infers your actual bill from missing data. Remote balance lookup is attempted only when `DEEPSEEK_API_KEY` is configured privately on the server.
+## Development
 
-## Device regression checklist
+```sh
+npm run dev
+npm run verify
+npm run build
+bash scripts/smoke.sh
+```
 
-- [ ] Pair once over HTTPS; verify reuse and device revocation fail.
-- [ ] Receive a real background push and follow its deep link.
-- [ ] Preview/download a report and compare historical versions.
-- [ ] Stream a live DSH task, interrupt it and reconnect after 30 seconds offline.
-- [ ] Approve/reject a real request and verify dangerous operations require a passkey.
-- [ ] Share a URL from Android into Inbox; open and revoke a read-only share.
-- [ ] Restart the deployed server and confirm recovery.
+Verification covers strict TypeScript, ESLint, automated security/workflow tests and an HTTP smoke harness. GitHub Actions builds and lints the Android app; version tags produce APK/server assets and SHA-256 checksums.
 
-## Roadmap
+| Read | Purpose |
+| :--- | :--- |
+| [Getting started](docs/GETTING_STARTED.md) | Install, configure, pair and self-host |
+| [Validation](docs/VALIDATION.md) | What has actually been tested |
+| [Design decisions](docs/DECISIONS.md) | Scope, security choices and remaining work |
+| [Changelog](CHANGELOG.md) | Changes by milestone and release |
+| [Security](SECURITY.md) | Boundaries and private reporting |
 
-M0 foundation → M1 pairing → M2 artifacts → M3 push → M4 conversations → M5 approvals → M6 operations → M7 sharing → M8 distribution.
+## Build with us
 
-Original design: [SPEC.md](SPEC.md). Engineering instructions: [AGENTS.md](AGENTS.md). Progress: [CHANGELOG.md](CHANGELOG.md).
+Small, thoughtful improvements are welcome. A clear issue, a focused fix, a better empty state, a tested adapter — all count.
 
-MIT licensed.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Please keep credentials and personal artifact content out of public issues.
+
+## License
+
+[MIT](LICENSE). Make it yours.
+
+<p align="center"><sub>VelaDeck · Your agents. Within reach.</sub></p>

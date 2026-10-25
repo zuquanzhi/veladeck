@@ -148,7 +148,7 @@ vite.config.ts.timestamp-*
 # Turbo Repo
 .turbo
 
-# RunOtter runtime and local tooling
+# VelaDeck runtime and local tooling
 data/
 .tools/
 *.db
