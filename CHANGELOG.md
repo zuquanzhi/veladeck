@@ -27,3 +27,11 @@ VAPID generation, authenticated push subscriptions, six-hour deduplication, quie
 Verification pending. Real Android background delivery cannot be marked passed without a configured HTTPS deployment and a physical device. Failed/absent notification channels remain explicitly undelivered.
 
 M3 validation: compiler/linter, notification policy and subscription isolation tests, production PWA build and extended HTTP smoke passed. Real-device checks remain pending.
+
+## M4 — Conversations
+
+Persistent monotonic event sequences, SSE send/replay streams, cancellable DSH subprocess adapter without shell interpolation, attachment limits, thread search/pinning/renaming and incremental Markdown display. Client disconnects do not cancel server tasks. Adapter errors are explicit; no simulated successful agent responses are shown.
+
+Verification pending. Actual DSH CLI protocol, first-token latency and production reconnection still need integration against the user's configured backend.
+
+M4 validation: all current tests including subprocess sequence/replay passed; production build and extended HTTP smoke passed. Live DSH integration remains unverified.
