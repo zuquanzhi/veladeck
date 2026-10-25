@@ -1,12 +1,33 @@
 plugins { id 'com.android.application' }
 def packageVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+def parts = packageVersion.toString().split('\\.')*.toInteger()
+def packageCode = parts[0] * 1000000L + parts[1] * 1000L + parts[2]
+if (parts.size() != 3 || parts[1] > 999 || parts[2] > 999 || packageCode <= 0 || packageCode > 2100000000L) {
+    throw new GradleException('Package version cannot be represented as an Android version code')
+}
+def signingPath = System.getenv('ANDROID_KEYSTORE_PATH')
 android {
     namespace 'io.github.zuquanzhi.veladeck'
     compileSdk 35
     buildFeatures { buildConfig true }
-    defaultConfig { applicationId 'io.github.zuquanzhi.veladeck'; minSdk 26; targetSdk 35; versionCode 2; versionName packageVersion }
-    buildTypes { debug { applicationIdSuffix '.preview'; versionNameSuffix '-preview' }; release { minifyEnabled false } }
+    defaultConfig { applicationId 'io.github.zuquanzhi.veladeck'; minSdk 26; targetSdk 35; versionCode packageCode.toInteger(); versionName packageVersion }
+    signingConfigs {
+        release {
+            storeFile signingPath ? file(signingPath) : rootProject.file('missing-release-keystore.p12')
+            storeType 'PKCS12'
+            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+            keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: ''
+            keyPassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+        }
+    }
+    buildTypes {
+        debug { applicationIdSuffix '.dev'; versionNameSuffix '-dev'; buildConfigField 'boolean', 'UPDATES_ENABLED', 'false'; resValue 'string', 'app_name', 'VelaDeck Dev' }
+        release { applicationIdSuffix '.preview'; versionNameSuffix '-preview'; minifyEnabled false; signingConfig signingConfigs.release; buildConfigField 'boolean', 'UPDATES_ENABLED', 'true'; resValue 'string', 'app_name', 'VelaDeck' }
+    }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     lint { abortOnError true }
 }
-dependencies { implementation 'androidx.browser:browser:1.8.0' }
+dependencies {
+    implementation 'androidx.browser:browser:1.8.0'
+    testImplementation 'junit:junit:4.13.2'
+}

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 — Signed in-app updates
+
+Android now checks public GitHub Releases, including published previews, on launch once a day and on demand from the connection screen or workspace menu. Updates download only after confirmation, verify SHA-256, package/version and signing identity, and open the Android installer with scoped file access. Added fixed release signing via Actions Secrets, a pinned public certificate fingerprint and increasing semantic-version-derived Android codes. Development builds use a separate package and cannot offer installation updates. Existing v0.1.1 temporary-signed installs require a one-time manual replacement.
+
+Validation pending: application verification/build/smoke, Android update policy and download integrity tests, Android compile/lint, fixed-signature release build and publication. Device installation permission and installer behavior require device/emulator verification.
+
 ## 0.1.1 — VelaDeck visual refresh
 
 Renamed RunOtter to VelaDeck with the user-selected Current flowing-ribbon identity. Rebuilt the responsive workspace, light/dark themes, pairing and native Android connection screen. Added actual grid/list switching, keyboard search, shared vector icons, bilingual project READMEs and screenshots generated from synthetic fixtures. GitHub history is retained. Existing databases and browser sessions remain compatible on the same configured server origin.

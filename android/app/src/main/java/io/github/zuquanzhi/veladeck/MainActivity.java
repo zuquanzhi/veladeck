@@ -1,13 +1,17 @@
 package io.github.zuquanzhi.veladeck;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -19,27 +23,68 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
+import androidx.core.content.FileProvider;
+import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** Browser-backed companion: preserves the browser's cookie, passkey and TLS security boundaries. */
 public final class MainActivity extends Activity {
+    private static final String SHOW_UPDATES = "io.github.zuquanzhi.veladeck.SHOW_UPDATES";
+    private static final long CHECK_INTERVAL = 24L * 60 * 60 * 1000;
+    private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private EditText address;
     private TextView error;
     private String sharedText;
     private SharedPreferences preferences;
+    private TextView updateStatus;
+    private Button updateButton;
+    private GithubUpdates updates;
+    private UpdatePolicy.Release available;
+    private File downloaded;
+    private boolean resumed, deferredPrompt, waitingForInstallPermission, busy, workspaceOpened;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         preferences = getSharedPreferences("connection", MODE_PRIVATE);
+        updates = new GithubUpdates(this);
         sharedText = extractSharedText(getIntent());
         render();
-        if (state == null && !preferences.getString("server", "").isEmpty()) openWorkspace();
+        boolean manual = SHOW_UPDATES.equals(getIntent().getAction());
+        boolean connect = state == null && !manual && !preferences.getString("server", "").isEmpty();
+        long elapsed = System.currentTimeMillis() - preferences.getLong("update_checked_at", 0);
+        if (manual || (BuildConfig.UPDATES_ENABLED && (elapsed < 0 || elapsed >= CHECK_INTERVAL
+                || preferences.getBoolean("update_available", false)))) checkForUpdates(manual, connect);
+        else if (connect) openWorkspace();
     }
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        if (SHOW_UPDATES.equals(intent.getAction())) {
+            if (!busy) checkForUpdates(true, false);
+            return;
+        }
         sharedText = extractSharedText(intent);
         if (!preferences.getString("server", "").isEmpty()) openWorkspace();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        resumed = true;
+        if (waitingForInstallPermission) {
+            waitingForInstallPermission = false;
+            if (getPackageManager().canRequestPackageInstalls()) requestInstall();
+            else updateStatus.setText("安装权限尚未开启。准备好后点击“安装更新”重试。");
+        } else if (deferredPrompt) showUpdate();
+    }
+
+    @Override protected void onPause() { resumed = false; super.onPause(); }
+
+    @Override protected void onDestroy() { worker.shutdownNow(); super.onDestroy(); }
+
+    private void ui(Runnable action) {
+        runOnUiThread(() -> { if (!isFinishing() && !isDestroyed()) action.run(); });
     }
 
     private String extractSharedText(Intent intent) {
@@ -137,7 +182,146 @@ public final class MainActivity extends Activity {
         footer.setTypeface(Typeface.MONOSPACE);
         layout.addView(footer);
         layout.addView(text("v" + BuildConfig.VERSION_NAME + "  ·  Android 8.0+", 10, secondary));
+        updateButton = new Button(this);
+        updateButton.setAllCaps(false);
+        updateButton.setText("检查应用更新");
+        updateButton.setTextSize(13);
+        updateButton.setTextColor(ink);
+        updateButton.setBackground(rounded(getColor(R.color.app_surface), 12, true));
+        updateButton.setOnClickListener(view -> {
+            if (downloaded != null) requestInstall();
+            else if (available != null) downloadUpdate();
+            else checkForUpdates(true, false);
+        });
+        layout.addView(updateButton, new LinearLayout.LayoutParams(-1, dp(46)));
+        updateStatus = text(BuildConfig.UPDATES_ENABLED
+                ? "每天自动检查更新，安装前由你确认。" : "开发构建不提供覆盖升级，请使用 GitHub Release 安装包。", 11, secondary);
+        updateStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        layout.addView(updateStatus);
         setContentView(scroll);
+    }
+
+    private void checkForUpdates(boolean manual, boolean connectAfterCheck) {
+        if (busy) return;
+        if (!BuildConfig.UPDATES_ENABLED) {
+            updateStatus.setText("请从 GitHub Release 安装固定签名版本。");
+            return;
+        }
+        busy = true;
+        updateButton.setEnabled(false);
+        updateStatus.setText("正在检查 GitHub 上的新版本…");
+        worker.execute(() -> {
+            try {
+                UpdatePolicy.Release release = updates.check(manual);
+                ui(() -> {
+                    busy = false;
+                    available = release;
+                    preferences.edit().putLong("update_checked_at", System.currentTimeMillis())
+                            .putBoolean("update_available", release != null).apply();
+                    updateButton.setEnabled(true);
+                    updateButton.setText(release == null ? "再次检查更新" : "下载 v" + release.version);
+                    updateStatus.setText(release == null ? "当前已是最新版本。" : "发现新版本 v" + release.version + "，可下载并安装。");
+                    if (release != null) { deferredPrompt = true; if (resumed) showUpdate(); }
+                    else if (connectAfterCheck && !workspaceOpened) openWorkspace();
+                });
+            } catch (Exception ignored) {
+                ui(() -> {
+                    busy = false;
+                    updateButton.setEnabled(true);
+                    updateStatus.setText("暂时无法检查更新，请稍后重试。工作台仍可正常连接。");
+                    if (connectAfterCheck && !workspaceOpened) openWorkspace();
+                });
+            }
+        });
+    }
+
+    private void showUpdate() {
+        deferredPrompt = false;
+        if (available == null || busy) return;
+        new AlertDialog.Builder(this).setTitle("VelaDeck v" + available.version)
+            .setMessage("发现新版本。下载完成后将交给系统确认安装。\n\n" + available.notes)
+            .setPositiveButton("下载并安装", (dialog, which) -> downloadUpdate())
+            .setNegativeButton("稍后", (dialog, which) -> {})
+            .setNeutralButton("发布说明", (dialog, which) -> {
+                try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(UpdatePolicy.REPOSITORY + "/releases/tag/v" + available.version))); }
+                catch (ActivityNotFoundException ignored) { updateStatus.setText("未找到可打开发布说明的浏览器。"); }
+            }).show();
+    }
+
+    private void downloadUpdate() {
+        if (busy || available == null) return;
+        UpdatePolicy.Release release = available;
+        busy = true;
+        updateButton.setEnabled(false);
+        updateStatus.setText("正在下载更新…");
+        worker.execute(() -> {
+            try {
+                int[] lastPercent = {-1};
+                File file = updates.download(release, bytes -> {
+                    int percent = (int) (bytes * 100 / release.size);
+                    if (percent != lastPercent[0]) {
+                        lastPercent[0] = percent;
+                        ui(() -> updateStatus.setText("正在下载更新 · " + percent + "%"));
+                    }
+                });
+                ui(() -> {
+                    busy = false;
+                    downloaded = file;
+                    updateButton.setEnabled(true);
+                    updateButton.setText("安装更新");
+                    updateStatus.setText("下载与签名校验通过，可以安装。");
+                    if (resumed) requestInstall();
+                });
+            } catch (Exception ignored) {
+                ui(() -> {
+                    busy = false;
+                    updateButton.setEnabled(true);
+                    updateStatus.setText("下载或校验未完成，请重试。当前安装的版本不受影响。");
+                });
+            }
+        });
+    }
+
+    private void requestInstall() {
+        if (downloaded == null || available == null || busy) return;
+        if (!getPackageManager().canRequestPackageInstalls()) {
+            new AlertDialog.Builder(this).setTitle("允许安装应用更新")
+                .setMessage("请在系统设置中允许 VelaDeck 安装应用更新，然后返回继续。每次安装仍需要你确认。")
+                .setPositiveButton("去设置", (dialog, which) -> {
+                    try {
+                        waitingForInstallPermission = true;
+                        startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
+                    } catch (ActivityNotFoundException ignored) {
+                        waitingForInstallPermission = false;
+                        updateStatus.setText("请在系统设置中允许 VelaDeck 安装未知应用后重试。");
+                    }
+                }).setNegativeButton("稍后", null).show();
+            return;
+        }
+        busy = true;
+        updateButton.setEnabled(false);
+        worker.execute(() -> {
+            try {
+                updates.validateApk(downloaded, available);
+                ui(() -> {
+                    busy = false;
+                    updateButton.setEnabled(true);
+                    Uri file = FileProvider.getUriForFile(this, getPackageName() + ".updates", downloaded);
+                    Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(file, "application/vnd.android.package-archive")
+                            .setClipData(ClipData.newRawUri("VelaDeck update", file)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    try { startActivity(install); updateStatus.setText("请在系统安装界面确认更新。"); }
+                    catch (ActivityNotFoundException ignored) { updateStatus.setText("未找到系统安装器，可以稍后重试。"); }
+                });
+            } catch (Exception ignored) {
+                ui(() -> {
+                    busy = false;
+                    downloaded = null;
+                    updateButton.setEnabled(true);
+                    updateButton.setText("重新下载更新");
+                    updateStatus.setText("安装包校验失败，请重新下载。");
+                });
+            }
+        });
     }
 
     private void openWorkspace() {
@@ -154,7 +338,12 @@ public final class MainActivity extends Activity {
         try {
             InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (keyboard != null) keyboard.hideSoftInputFromWindow(address.getWindowToken(), 0);
-            new CustomTabsIntent.Builder().setShowTitle(true).setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder().setToolbarColor(getColor(R.color.app_background)).setNavigationBarColor(getColor(R.color.app_background)).build()).build().launchUrl(this, uri);
+            Intent updateIntent = new Intent(this, MainActivity.class).setAction(SHOW_UPDATES)
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent updateMenu = PendingIntent.getActivity(this, 1, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            new CustomTabsIntent.Builder().setShowTitle(true).addMenuItem("应用更新", updateMenu)
+                    .setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder().setToolbarColor(getColor(R.color.app_background)).setNavigationBarColor(getColor(R.color.app_background)).build()).build().launchUrl(this, uri);
+            workspaceOpened = true;
             sharedText = null;
             error.setText("");
         } catch (ActivityNotFoundException exception) {

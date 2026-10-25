@@ -156,6 +156,9 @@ data/
 *.db-wal
 *.keystore
 *.jks
+*.p12
+*.pfx
+*.dpapi
 android/.gradle/
 android/local.properties
 android/**/build/

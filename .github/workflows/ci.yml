@@ -31,8 +31,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - run: gradle --no-daemon -p android assembleDebug lintDebug
+      - run: gradle --no-daemon -p android testDebugUnitTest assembleDebug lintDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: android-preview
+          name: android-development
           path: android/app/build/outputs/apk/debug/app-debug.apk
