@@ -21,6 +21,8 @@ import {approvalRoutes} from './routes/approvals.js';
 import {OpsBridge} from './services/opsBridge.js';
 import {CostService} from './services/costService.js';
 import {opsRoutes} from './routes/ops.js';
+import {Sharing} from './services/sharing.js';
+import {sharingRoutes} from './routes/sharing.js';
 export async function buildApp(config:Config,logging=false){
   const app=Fastify({logger:logging?{level:'info',redact:['req.headers.cookie','req.headers.authorization','res.headers.set-cookie'],serializers:{req:r=>({method:r.method,url:String(r.url).split('?')[0].replace(/\/s\/[^/]+/g,'/s/[redacted]')})}}:false,bodyLimit:28*1024*1024,trustProxy:false});
   app.setErrorHandler((error,_req,reply)=>{const err=error as Error & {statusCode?:number;code?:string};const code=error instanceof ZodError?400:err.statusCode??500;reply.code(code).send({error:{code:error instanceof ZodError?'VALIDATION_ERROR':err.code??'INTERNAL_ERROR',message:code>=500?'The service could not complete this request.':err.message}});});
@@ -36,6 +38,7 @@ export async function buildApp(config:Config,logging=false){
   const bridge=new AgentBridge(store,config);threadRoutes(app,auth,bridge);
   const approvals=new Approvals(store,auth,bridge,push);approvalRoutes(app,auth,approvals);
   const ops=new OpsBridge(store,config),cost=new CostService(store,config,push);opsRoutes(app,auth,ops,cost);
+  const sharing=new Sharing(store,config,artifacts,bridge);sharingRoutes(app,auth,sharing);
   let lastClean='';
   const maintenance=setInterval(()=>{const now=new Intl.DateTimeFormat('sv-SE',{timeZone:config.TIMEZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).format(new Date());try{approvals.expire();artifacts.scan(config.ARTIFACT_SCAN_DIRS.split(',').map(s=>s.trim()).filter(Boolean));if(now.endsWith('04')&&lastClean!==now.slice(0,10)){artifacts.clean();lastClean=now.slice(0,10);}}catch{app.log.warn('Artifact maintenance failed; retained for operator review.');}},60000);maintenance.unref();
   app.addHook('onClose',async()=>clearInterval(maintenance));

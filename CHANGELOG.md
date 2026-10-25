@@ -51,3 +51,11 @@ Actual host memory/disk/uptime and Linux service probes; explicit unavailable re
 Verification pending. Mail quota collection and a live Silicon Valley status adapter are not configured. Windows development reports local telemetry and explicitly disables systemd actions.
 
 M6 validation: all current tests including idempotent project accounting and daily budget alerts passed; production build and extended HTTP smoke passed. Remote quota sources remain unconnected.
+
+## M7 — Inbox and read-only sharing
+
+Share-target capture, idempotent Inbox submission, task conversion and archive, seven-day revocable public links with hashed bearer tokens, public-link rate limiting and sandboxed HTML, metadata export and a live summary card. Shared Markdown is rendered without raw HTML execution. No share route exposes write controls.
+
+Verification pending. PWA share-panel registration needs installation and a physical Android check; no hosted endpoint has been provisioned by this development task.
+
+M7 validation: all tests including public share hashing/revocation/XSS and Inbox idempotency passed; production PWA build and extended HTTP smoke passed.
