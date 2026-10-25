@@ -97,12 +97,15 @@ final class GithubUpdates {
         }
     }
 
+    @SuppressWarnings("deprecation")
     void validateApk(File file, UpdatePolicy.Release release) throws Exception {
         // Recheck the bytes before handing the cached file to the system installer.
         try (InputStream input = new FileInputStream(file)) {
             UpdatePolicy.copyVerified(input, new OutputSink(), release, bytes -> {});
         }
         PackageManager manager = context.getPackageManager();
+        // Android 10's archive parser collects certificates only when GET_SIGNATURES is set.
+        // Also request modern SigningInfo, while retaining a legacy fallback for older devices.
         int flags = PackageManager.GET_SIGNATURES;
         if (Build.VERSION.SDK_INT >= 28) flags |= PackageManager.GET_SIGNING_CERTIFICATES;
         PackageInfo archive = manager.getPackageArchiveInfo(file.getAbsolutePath(), flags);

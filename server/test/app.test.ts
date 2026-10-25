@@ -5,7 +5,7 @@ test('health exposes version and UTC time', async () => {
   try {
     const r = await f.app.inject('/api/health');
     expect(r.statusCode).toBe(200);
-    expect(r.json()).toMatchObject({ ok: true, version: '0.1.2' });
+    expect(r.json()).toMatchObject({ ok: true, version: '0.2.0' });
   } finally {
     await f.cleanup();
   }

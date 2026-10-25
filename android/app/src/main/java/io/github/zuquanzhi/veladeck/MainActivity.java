@@ -2,7 +2,6 @@ package io.github.zuquanzhi.veladeck;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
@@ -21,15 +20,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.core.content.FileProvider;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Browser-backed companion: preserves the browser's cookie, passkey and TLS security boundaries. */
-public final class MainActivity extends Activity {
+/** Native connection and APK update entry. Workspace navigation uses Android activities. */
+public final class MainActivity extends NativeActivity {
     private static final String SHOW_UPDATES = "io.github.zuquanzhi.veladeck.SHOW_UPDATES";
     private static final long CHECK_INTERVAL = 24L * 60 * 60 * 1000;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
@@ -51,7 +48,8 @@ public final class MainActivity extends Activity {
         sharedText = extractSharedText(getIntent());
         render();
         boolean manual = SHOW_UPDATES.equals(getIntent().getAction());
-        boolean connect = state == null && !manual && !preferences.getString("server", "").isEmpty();
+        boolean connectionOnly = "io.github.zuquanzhi.veladeck.SHOW_CONNECTION".equals(getIntent().getAction());
+        boolean connect = state == null && !manual && !connectionOnly && !preferences.getString("server", "").isEmpty();
         long elapsed = System.currentTimeMillis() - preferences.getLong("update_checked_at", 0);
         if (manual || (BuildConfig.UPDATES_ENABLED && (elapsed < 0 || elapsed >= CHECK_INTERVAL
                 || preferences.getBoolean("update_available", false)))) checkForUpdates(manual, connect);
@@ -61,6 +59,7 @@ public final class MainActivity extends Activity {
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        if ("io.github.zuquanzhi.veladeck.SHOW_CONNECTION".equals(intent.getAction())) return;
         if (SHOW_UPDATES.equals(intent.getAction())) {
             if (!busy) checkForUpdates(true, false);
             return;
@@ -341,16 +340,20 @@ public final class MainActivity extends Activity {
         try {
             InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (keyboard != null) keyboard.hideSoftInputFromWindow(address.getWindowToken(), 0);
-            Intent updateIntent = new Intent(this, MainActivity.class).setAction(SHOW_UPDATES)
-                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent updateMenu = PendingIntent.getActivity(this, 1, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            new CustomTabsIntent.Builder().setShowTitle(true).addMenuItem("应用更新", updateMenu)
-                    .setDefaultColorSchemeParams(new CustomTabColorSchemeParams.Builder().setToolbarColor(getColor(R.color.app_background)).setNavigationBarColor(getColor(R.color.app_background)).build()).build().launchUrl(this, uri);
+            SessionVault vault = new SessionVault(this);
+            vault.connect(value);
+            Intent next = new Intent(this, vault.paired() ? WorkspaceActivity.class : PairActivity.class);
+            next.putExtra("share_text", sharedText);
+            next.putExtra("native_link", getIntent().getStringExtra("native_link"));
+            startActivity(next);
             workspaceOpened = true;
             sharedText = null;
             error.setText("");
+            finish();
         } catch (ActivityNotFoundException exception) {
-            error.setText("请先安装支持 HTTPS 的浏览器，例如 Chrome。");
+            error.setText("暂时无法打开原生工作台，请重新启动应用。");
+        } catch (IllegalArgumentException exception) {
+            error.setText("请输入完整的 HTTPS 工作台地址。");
         }
     }
 }

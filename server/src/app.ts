@@ -23,6 +23,7 @@ import { CostService } from './services/costService.js';
 import { opsRoutes } from './routes/ops.js';
 import { Sharing } from './services/sharing.js';
 import { sharingRoutes } from './routes/sharing.js';
+import { androidAssetLinks } from './lib/androidIdentity.js';
 const version = z
   .object({ version: z.string() })
   .parse(JSON.parse(readFileSync('package.json', 'utf8'))).version;
@@ -64,6 +65,7 @@ export async function buildApp(config: Config, logging = false) {
     });
   });
   app.get('/api/health', () => ({ ok: true, version, time: new Date().toISOString() }));
+  app.get('/.well-known/assetlinks.json', () => androidAssetLinks);
   const store = new Store(config.DATA_DIR),
     auth = new Auth(store, config),
     settings = new Settings(store),

@@ -10,6 +10,7 @@ import type { Store } from '../db/client.js';
 import type { Config } from '../config.js';
 import { id, secret, hash, check, audit, digest } from '../lib/security.js';
 import { fail } from '../lib/errors.js';
+import { credentialOrigins } from '../lib/androidIdentity.js';
 export interface Device {
   id: string;
   name: string;
@@ -139,7 +140,7 @@ export class Auth {
     const v = await verifyRegistrationResponse({
       response,
       expectedChallenge: c.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: credentialOrigins(url.origin),
       expectedRPID: url.hostname,
       requireUserVerification: true,
     });
@@ -174,7 +175,7 @@ export class Auth {
     const v = await verifyAuthenticationResponse({
       response,
       expectedChallenge: c.challenge,
-      expectedOrigin: url.origin,
+      expectedOrigin: credentialOrigins(url.origin),
       expectedRPID: url.hostname,
       requireUserVerification: true,
       credential: {

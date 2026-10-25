@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 — Native Android workspace
+
+Replaced the browser-backed Android companion with native Android screens for pairing, artifacts, conversations, approvals, operations, Inbox and settings. The client talks directly to authenticated HTTPS JSON/SSE APIs; no WebView or Custom Tabs is used for the workspace. Sessions are encrypted with Android Keystore, documents use scoped native file access, and passkeys use Credential Manager with the fixed release app association. Native reminders use opt-in Android scheduled checks. Fixed signing and verified in-app APK updates are retained, including the Android 10 archive-signature compatibility fix.
+
+Validation in progress: backend/app verification, Android compile/lint/unit tests, native UI/API emulator flow and the real signed upgrade path. Physical-device passkeys and background scheduling remain separate device checks.
+
 ## 0.1.2 — Signed in-app updates
 
 Android now checks public GitHub Releases, including published previews, on launch once a day and on demand from the connection screen or workspace menu. Updates download only after confirmation, verify SHA-256, package/version and signing identity, and open the Android installer with scoped file access. Added fixed release signing via Actions Secrets, a pinned public certificate fingerprint and increasing semantic-version-derived Android codes. Development builds use a separate package and cannot offer installation updates. Existing v0.1.1 temporary-signed installs require a one-time manual replacement.
