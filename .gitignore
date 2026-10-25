@@ -147,3 +147,15 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# RunOtter runtime and local tooling
+data/
+.tools/
+*.db
+*.db-shm
+*.db-wal
+*.keystore
+*.jks
+android/.gradle/
+android/local.properties
+android/**/build/
