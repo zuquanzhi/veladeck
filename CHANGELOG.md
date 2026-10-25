@@ -67,3 +67,5 @@ Android companion with configurable HTTPS address and text share handling; GitHu
 Validation and publication pending. Physical-device and live-infrastructure checks remain open; release notes explicitly describe the preview scope and development signing.
 
 M8 local validation: Node 22 baseline; 15 tests, production PWA build, extended HTTP smoke and mobile Chrome QA passed. Runtime dependency audit is clean. Android CI and publication remain pending at this commit.
+
+M8 cloud validation: GitHub Actions Verify run 40170211621 passed both verify and Android build/lint jobs. First preview release tag: v0.1.0. Publication is verified separately after the tag workflow completes.

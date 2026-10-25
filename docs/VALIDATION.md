@@ -22,3 +22,5 @@ Not executed on production hardware:
 These require an actual configured endpoint and devices. They must not be reported as passed on the basis of local tests or an APK build.
 
 Final local checks: 15 tests passed; production build and HTTP smoke passed; mobile Chrome browser QA passed for pairing, artifact detail and navigation with no page errors. Screenshots are synthetic fixtures in docs/screenshots. Runtime dependency audit after security upgrades reported zero vulnerabilities.
+
+GitHub validation succeeded for c72e992: both application verification and Android assembleDebug/lintDebug passed in https://github.com/zuquanzhi/runotter/actions/runs/40170211621 . The APK was produced as a workflow artifact. Release asset signing metadata and publication are handled by the subsequent tag-triggered Release run.
