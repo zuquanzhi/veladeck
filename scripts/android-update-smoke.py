@@ -40,6 +40,8 @@ def wait_node(predicate, timeout=100):
     while time.monotonic() < deadline:
         try:
             for node in hierarchy():
+                if node.get('text', '').startswith('下载或校验未完成'):
+                    raise AssertionError('Update download failed; inspect VelaDeckUpdate logcat diagnostics')
                 if predicate(node):
                     return node
         except (subprocess.SubprocessError, ET.ParseError):
@@ -65,6 +67,11 @@ try:
     text('VelaDeck v' + CONFIG['target'])
     screen('01-update-available')
     tap(offer)
+    time.sleep(2)
+    # On compact displays the native update controls are below the connection form.
+    size = re.search(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))
+    width, height = map(int, size.groups())
+    adb('shell', 'input', 'swipe', str(width // 2), str(height * 85 // 100), str(width // 2), str(height // 3), '300')
     permission = text('去设置')
     screen('02-download-verified')
     tap(permission)
@@ -103,6 +110,6 @@ try:
 except Exception:
     try:
         screen('failure')
-        (OUTPUT / 'logcat.txt').write_text(adb('logcat', '-d', '-t', '300'))
+        (OUTPUT / 'logcat.txt').write_text(adb('logcat', '-d', '-s', 'VelaDeckUpdate:I', 'AndroidRuntime:E', '*:S'))
     finally:
         raise

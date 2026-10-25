@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
+import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 /** Public GitHub requests only. Workspace cookies and tokens never enter this client. */
 final class GithubUpdates {
+    private static final String LOG_TAG = "VelaDeckUpdate";
     private static final String API = "https://api.github.com/repos/zuquanzhi/veladeck/releases?per_page=30";
     private final Context context;
 
@@ -68,18 +70,29 @@ final class GithubUpdates {
         File directory = new File(context.getCacheDir(), "updates");
         if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Cannot create update cache");
         File partial = new File(directory, "download.part.apk"), ready = new File(directory, "verified-update.apk");
-        HttpURLConnection connection = downloadConnection(URI.create(release.url));
+        HttpURLConnection connection = null;
+        String stage = "connection";
         try {
+            connection = downloadConnection(URI.create(release.url));
+            stage = "transfer";
             long length = connection.getContentLengthLong();
+            Log.i(LOG_TAG, "Download length=" + length + ", expected=" + release.size);
             if (length >= 0 && length != release.size) throw new IOException("Unexpected download size");
             try (InputStream input = connection.getInputStream(); FileOutputStream output = new FileOutputStream(partial)) {
                 UpdatePolicy.copyVerified(input, output, release, progress);
             }
+            stage = "identity";
             validateApk(partial, release);
+            stage = "cache";
             Files.move(partial.toPath(), ready.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return ready;
+        } catch (Exception error) {
+            String reason = error.getMessage();
+            if (reason == null || !reason.matches("APK_(SIZE|SHA256|PACKAGE|VERSION|SIGNER)|Invalid APK|Unexpected download size|Download HTTP [0-9]{3}|Untrusted download host|Too many download redirects")) reason = "IO_OR_NETWORK";
+            Log.w(LOG_TAG, "Update failed: stage=" + stage + ", type=" + error.getClass().getSimpleName() + ", reason=" + reason);
+            throw error;
         } finally {
-            connection.disconnect();
+            if (connection != null) connection.disconnect();
             Files.deleteIfExists(partial.toPath());
         }
     }
@@ -95,6 +108,7 @@ final class GithubUpdates {
         PackageInfo installed = manager.getPackageInfo(context.getPackageName(), flags);
         if (archive == null) throw new IOException("Invalid APK");
         long code = Build.VERSION.SDK_INT >= 28 ? archive.getLongVersionCode() : archive.versionCode;
+        Log.i(LOG_TAG, "APK code=" + code + ", expected=" + release.code + ", installed=" + BuildConfig.VERSION_CODE);
         UpdatePolicy.validatePackage(release, archive.packageName, context.getPackageName(), code,
                 archive.versionName, BuildConfig.VERSION_CODE, signers(archive), signers(installed));
     }
@@ -127,11 +141,12 @@ final class GithubUpdates {
             int status;
             try { status = connection.getResponseCode(); }
             catch (IOException e) { connection.disconnect(); throw e; }
+            Log.i(LOG_TAG, "Download response=" + status + ", host=" + uri.getHost());
             if (status == 200) return connection;
             String location = connection.getHeaderField("Location");
             connection.disconnect();
             if ((status != 301 && status != 302 && status != 303 && status != 307 && status != 308) || location == null)
-                throw new IOException("Download unavailable");
+                throw new IOException("Download HTTP " + status);
             uri = uri.resolve(location);
         }
         throw new IOException("Too many download redirects");

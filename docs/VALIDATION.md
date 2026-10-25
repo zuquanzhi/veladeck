@@ -50,3 +50,9 @@ Native-device visual regression and the live-service checks above remain pending
 - Updated documentation links passed.
 
 A dedicated emulator smoke workflow uses current source stamped with an older version and the same fixed key, then upgrades through the actual public release API/download, installation-source permission UI and Android installer. This fixture is not the historical temporary-signed 0.1.1 APK. Results are recorded only after that workflow completes. Physical-device checks remain pending.
+
+Release publication verification:
+
+- [Release 40177047399](https://github.com/zuquanzhi/veladeck/actions/runs/40177047399) succeeded for [v0.1.2](https://github.com/zuquanzhi/veladeck/releases/tag/v0.1.2), source `c4f4f64`, published 2026-10-25 08:34:09 UTC. Main verification 40177044594 also passed.
+- Downloaded all four published assets. GitHub asset digests and the APK/server checksum manifest match the local files. APK ZIP integrity passed. APK SHA-256: `58181641fba674fc18e0e08a3041f0f774dc8dff6c7296c1c470d2107e8bdd32`.
+- Verified package `io.github.zuquanzhi.veladeck.preview`, code `1002`, version `0.1.2-preview`, and fixed signer SHA-256 `7a149537b057d66450254fc84b85a099707fb574892b8427452c8a4dd06a715d` against the repository pin and published APK verification metadata.

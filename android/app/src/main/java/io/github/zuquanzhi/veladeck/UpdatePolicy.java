@@ -70,20 +70,21 @@ final class UpdatePolicy {
         while ((read = input.read(buffer)) != -1) {
             if (Thread.currentThread().isInterrupted() || System.nanoTime() > deadline) throw new IOException("Download interrupted");
             count += read;
-            if (count > release.size) throw new IOException("Unexpected APK size");
+            if (count > release.size) throw new IOException("APK_SIZE");
             digest.update(buffer, 0, read);
             output.write(buffer, 0, read);
             progress.received(count);
         }
-        if (count != release.size || !hex(digest.digest()).equals(release.sha256)) throw new IOException("APK verification failed");
+        if (count != release.size) throw new IOException("APK_SIZE");
+        if (!hex(digest.digest()).equals(release.sha256)) throw new IOException("APK_SHA256");
     }
 
     static void validatePackage(Release release, String packageName, String expectedPackage, long code,
                                 String versionName, long installedCode, Set<String> signers, Set<String> installedSigners) throws IOException {
-        if (!expectedPackage.equals(packageName) || code != release.code || code <= installedCode
-                || !(release.version + "-preview").equals(versionName)
-                || installedSigners.isEmpty() || !installedSigners.equals(signers))
-            throw new IOException("APK identity or signing certificate does not match");
+        if (!expectedPackage.equals(packageName)) throw new IOException("APK_PACKAGE");
+        if (code != release.code || code <= installedCode || !(release.version + "-preview").equals(versionName))
+            throw new IOException("APK_VERSION");
+        if (installedSigners.isEmpty() || !installedSigners.equals(signers)) throw new IOException("APK_SIGNER");
     }
 
     static MessageDigest sha256() {
