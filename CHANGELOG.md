@@ -35,3 +35,11 @@ Persistent monotonic event sequences, SSE send/replay streams, cancellable DSH s
 Verification pending. Actual DSH CLI protocol, first-token latency and production reconnection still need integration against the user's configured backend.
 
 M4 validation: all current tests including subprocess sequence/replay passed; production build and extended HTTP smoke passed. Live DSH integration remains unverified.
+
+## M5 — Approvals
+
+Persisted approval requests, live-process binding, expiration and history, rejection and passkey-protected dangerous approvals, normal-only batch approval UI and audited decision forwarding. An approval cannot be forwarded to a replacement process after the original process ends. Dangerous actions require an action-bound, one-time passkey proof; the weaker fallback in the original contradictory prose is intentionally not used.
+
+Verification pending. Real agent approval protocol and physical passkeys remain integration checks.
+
+M5 validation: all tests including assertion bypass and expired decision rejection passed; production build and extended HTTP smoke passed.
