@@ -48,11 +48,16 @@ final class NativeUi {
     TextView label(String value) {
         TextView view = text(value, 10, muted); view.setTypeface(Typeface.MONOSPACE); view.setLetterSpacing(.09f); return view;
     }
-    TextView title(String value, int size) { TextView view = text(value, size, ink); view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); view.setLetterSpacing(-.025f); return view; }
+    TextView title(String value, int size) {
+        TextView view = text(value, size, ink); view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); view.setLetterSpacing(-.025f);
+        if (value.endsWith(".")) { android.text.SpannableString styled = new android.text.SpannableString(value); styled.setSpan(new android.text.style.ForegroundColorSpan(blue), value.length() - 1, value.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE); view.setText(styled); }
+        return view;
+    }
     Button button(String title, boolean primary, Runnable click) {
         Button view = new Button(context); view.setText(title); view.setAllCaps(false); view.setTextSize(13);
         view.setMinHeight(dp(44)); view.setMinimumHeight(dp(44)); view.setMinWidth(0); view.setMinimumWidth(0);
-        view.setTextColor(primary ? 0xFFFFFFFF : ink); pad(view, 15, 8); view.setBackground(rounded(primary ? blue : surface, 12, !primary));
+        view.setTextColor(primary ? 0xFFFFFFFF : ink); pad(view, 15, 8); view.setStateListAnimator(null); view.setElevation(0);
+        view.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x26087CFA), rounded(primary ? blue : surface, 12, !primary), rounded(0xFFFFFFFF, 12, false)));
         view.setOnClickListener(v -> click.run()); return view;
     }
     EditText input(String hint, boolean multiline) {

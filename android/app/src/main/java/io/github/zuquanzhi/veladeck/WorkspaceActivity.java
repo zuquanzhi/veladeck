@@ -104,7 +104,7 @@ public final class WorkspaceActivity extends NativeActivity {
             if (active) item.setBackground(ui.rounded(0x16087CFA, 22, false));
             ImageView icon = new ImageView(this); icon.setImageDrawable(ui.icon(icons[i], active ? ui.blue : ui.muted));
             item.addView(icon, new LinearLayout.LayoutParams(ui.dp(22), ui.dp(22))); ui.gap(item, 3);
-            item.addView(ui.text(titles[i], 11, active ? ui.blue : ui.muted));
+            TextView label = ui.text(titles[i], 11, active ? ui.blue : ui.muted); label.setGravity(Gravity.CENTER); item.addView(label);
             item.setOnClickListener(v -> show(selected)); navigation.addView(item, new LinearLayout.LayoutParams(0, -1, 1));
         }
     }

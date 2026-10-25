@@ -179,7 +179,7 @@ try:
 
     stage = 'native scheduled notifications'
     tap(text('设置'))
-    tap(text('本机后台提醒', True))
+    tap(starts('本机后台提醒', True))
     with urllib.request.urlopen('http://127.0.0.1:18092/notify', timeout=10) as response:
         response.read()
     adb('shell', 'cmd', 'jobscheduler', 'run', '-f', PACKAGE, '20260')
