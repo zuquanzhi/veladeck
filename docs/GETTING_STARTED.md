@@ -4,13 +4,13 @@
 
 A self-hosted, mobile-first workspace for agent artifacts, conversations, approvals, notifications, and operations. 单用户智能体手机工作台。
 
-**0.1.1 is a redesigned preview.** The core workflows are implemented; live infrastructure and physical-device integration checks remain open. [Validation](VALIDATION.md) · [Design decisions and remaining scope](DECISIONS.md).
+**0.1.2 adds signed in-app updates.** The core workflows are implemented; live infrastructure and physical-device integration checks remain open. [Validation](VALIDATION.md) · [Design decisions and remaining scope](DECISIONS.md).
 
 ## Android APK
 
-Download `VelaDeck-0.1.1-preview.apk` from [Releases](https://github.com/zuquanzhi/veladeck/releases). Android 8.0+ and a compatible browser are required. Enter your self-hosted HTTPS workspace URL, then enter a pairing code generated on the server. The APK is a browser-backed companion with an Android share target; it does not provide a hosted server or run an LLM on your phone.
+Download `VelaDeck-0.1.2-preview.apk` from [Releases](https://github.com/zuquanzhi/veladeck/releases). Android 8.0+ and a compatible browser are required. Enter your self-hosted HTTPS workspace URL, then enter a pairing code generated on the server. The APK is a browser-backed companion with an Android share target; it does not provide a hosted server or run an LLM on your phone.
 
-The preview uses a development certificate and separate package ID. A build from another runner may need the previous preview uninstalled. Production signing is not configured. For background push, install the PWA from Chrome as well.
+Release APKs from 0.1.2 use a fixed signing key and the same `.preview` package ID. The app checks GitHub daily at launch; check manually from the connection screen or the workspace menu’s **应用更新** entry. Downloads and installation require user confirmation. Existing temporary-signed 0.1.1 clients require a one-time uninstall/manual installation of 0.1.2, then re-entering the workspace URL. Subsequent releases can upgrade in place. Server data is unaffected. For background push, install the PWA from Chrome as well. [Update/signing guide](ANDROID_UPDATES.md).
 
 ### Upgrading from RunOtter
 

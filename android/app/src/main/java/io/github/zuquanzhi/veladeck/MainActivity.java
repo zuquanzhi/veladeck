@@ -241,7 +241,9 @@ public final class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle("VelaDeck v" + available.version)
             .setMessage("发现新版本。下载完成后将交给系统确认安装。\n\n" + available.notes)
             .setPositiveButton("下载并安装", (dialog, which) -> downloadUpdate())
-            .setNegativeButton("稍后", (dialog, which) -> {})
+            .setNegativeButton("稍后", (dialog, which) -> {
+                if (!workspaceOpened && !preferences.getString("server", "").isEmpty()) openWorkspace();
+            })
             .setNeutralButton("发布说明", (dialog, which) -> {
                 try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(UpdatePolicy.REPOSITORY + "/releases/tag/v" + available.version))); }
                 catch (ActivityNotFoundException ignored) { updateStatus.setText("未找到可打开发布说明的浏览器。"); }
@@ -308,7 +310,8 @@ public final class MainActivity extends Activity {
                     updateButton.setEnabled(true);
                     Uri file = FileProvider.getUriForFile(this, getPackageName() + ".updates", downloaded);
                     Intent install = new Intent(Intent.ACTION_VIEW).setDataAndType(file, "application/vnd.android.package-archive")
-                            .setClipData(ClipData.newRawUri("VelaDeck update", file)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    install.setClipData(ClipData.newRawUri("VelaDeck update", file));
                     try { startActivity(install); updateStatus.setText("请在系统安装界面确认更新。"); }
                     catch (ActivityNotFoundException ignored) { updateStatus.setText("未找到系统安装器，可以稍后重试。"); }
                 });

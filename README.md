@@ -73,9 +73,11 @@ Light when you want clarity. Dark when you want focus.
 Android **8.0+**. The companion uses browser-backed tabs to retain the browser's TLS, cookies and passkey boundary. For background notifications, install the PWA as well.
 
 <details>
-<summary>About preview APK signing</summary>
+<summary>App updates and preview signing</summary>
 
-The APK currently uses a development certificate and a separate `.preview` package ID. Builds from different CI runners can require uninstalling the previous preview. Production signing and app-store distribution are not configured.
+From **0.1.2**, Release APKs use a fixed signing key. The app checks published GitHub previews once a day on launch. Use **Check app updates** on the connection screen, or **应用更新 / App updates** in the workspace browser menu, to check at any time. Downloads require confirmation, verify their checksum and signing identity, and open the Android installer. Android may first ask you to allow VelaDeck to install updates.
+
+**One-time migration:** 0.1.1 used a temporary development key. Uninstall that old companion and manually install 0.1.2 once; enter your workspace URL again. Your server data is unaffected. Subsequent releases can install over this version. The separate `.preview` package ID is retained; app-store distribution is not configured. See [update and signing details](docs/ANDROID_UPDATES.md).
 
 </details>
 

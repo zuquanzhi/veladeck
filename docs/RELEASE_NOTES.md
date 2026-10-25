@@ -1,12 +1,10 @@
-VelaDeck 0.1.1 — a new identity and a calmer workspace.
+VelaDeck 0.1.2 — signed in-app updates.
 
-- Renamed RunOtter to VelaDeck, preserving the GitHub repository and release history. The selected Current logo is an abstract flowing ribbon, shared across web, PWA and Android as editable vector artwork.
-- Redesigned light/dark interfaces with a desktop sidebar, floating mobile navigation, clearer file cards, working list/grid views and keyboard search with Ctrl/Cmd K.
-- Refreshed the native Android connection screen and app icons. Rebuilt the English and Chinese READMEs with real application screenshots, architecture and installation guidance.
-- Existing `runotter.db` databases, device cookies and passkeys remain compatible when keeping the same data directory and HTTPS origin. See the upgrade notes in docs/GETTING_STARTED.md.
+- Automatically checks published GitHub Releases once a day at launch, including previews. Check manually from the connection screen or the workspace menu's “应用更新” entry.
+- Shows the new version and notes, downloads after confirmation with progress/retry, verifies SHA-256, file size, package/version and signing identity, then opens Android's system installer.
+- Handles the Android 8+ installation-source permission step; returning from Settings continues when permission is granted. The system still asks for installation confirmation.
+- Release APKs now use a fixed signing identity stored in GitHub Actions Secrets. The workflow checks its public certificate fingerprint before publication and never falls back to an ephemeral key. Development builds use a separate `.dev` package.
 
-Install `VelaDeck-0.1.1-preview.apk` on Android 8.0+. Enter the HTTPS URL of your own VelaDeck server. The APK is a browser-backed companion; it does not include a hosted server or AI backend. Its renamed package can coexist with the old RunOtter preview; enter your workspace address again.
+ONE-TIME MIGRATION: if you installed the temporary-signed 0.1.1 preview, uninstall that old companion and manually install `VelaDeck-0.1.2-preview.apk`, then enter your workspace URL again. This does not delete server-side data. Later fixed-key versions can update in place through the app.
 
-This APK uses a development signing certificate and a separate `.preview` package ID. Future builds from a different CI runner may require uninstalling the previous VelaDeck preview. Production signing and store distribution are not configured. SHA-256 checksums and APK verification metadata are attached.
-
-Live DSH compatibility, remote-node/mail adapters, HTTPS deployment, background push, physical passkeys and Android share-panel behavior remain unverified on the user's devices. For background push, install the PWA in a compatible browser. See docs/VALIDATION.md for actual checks and remaining integration work.
+Android 8.0+. The companion still connects to your own HTTPS workspace; no hosted backend is included. This remains preview software. Live DSH, remote adapters, physical-device push/passkeys and production deployment remain separate integration checks. Signature/package metadata and SHA-256 checksums are attached.
